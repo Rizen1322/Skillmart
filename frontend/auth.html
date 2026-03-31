@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Вход — Skillmart</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    body { display:flex; flex-direction:column; min-height:100vh; background:var(--bg); }
+    .auth-top {
+      padding: .85rem 1.5rem; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--border); background:var(--surface);
+    }
+    .brand-link {
+      font-family:'Bricolage Grotesque',sans-serif; font-size:1.15rem; font-weight:800;
+      text-decoration:none; display:inline-block;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; color:transparent;
+    }
+    .auth-wrap  { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+    .auth-card  { background:var(--surface); border-radius:var(--r-xl); border:1.5px solid rgba(0,0,0,.09); box-shadow:0 8px 48px rgba(0,0,0,.09); width:100%; max-width:420px; padding:2rem 2rem 1.75rem; }
+    .auth-toggle { display:flex; background:var(--surface2); border-radius:10px; padding:3px; margin-bottom:1.75rem; }
+    .toggle-btn  { flex:1; padding:.52rem; border-radius:8px; border:none; font:600 .84rem 'Inter',sans-serif; cursor:pointer; background:none; color:var(--muted); transition:all .2s; }
+    .toggle-btn.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+    .auth-form  { display:none; } .auth-form.active { display:block; }
+    .auth-heading { font-family:'Bricolage Grotesque',sans-serif; font-size:1.35rem; font-weight:700; margin-bottom:.25rem; }
+    .auth-sub   { font-size:.82rem; color:var(--muted); margin-bottom:1.5rem; }
+    .role-grid  { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:1.2rem; }
+    .role-opt   { border:1.5px solid var(--border2); border-radius:12px; padding:.9rem .8rem; cursor:pointer; text-align:center; transition:all .2s; background:var(--surface); }
+    .role-opt:hover { border-color:rgba(99,102,241,.35); }
+    .role-opt.sel   { border-color:var(--indigo); background:rgba(99,102,241,.05); }
+    .role-opt input { display:none; }
+    .role-emoji { font-size:1.5rem; margin-bottom:.3rem; }
+    .role-lbl   { font:600 .82rem 'Inter',sans-serif; }
+    .role-hint  { font-size:.7rem; color:var(--muted); margin-top:.15rem; }
+    .auth-foot  { text-align:center; margin-top:1.1rem; font-size:.81rem; color:var(--muted); }
+    .auth-foot a { color:var(--indigo); font-weight:600; }
+    .spin-btn .sp { display:none; width:15px; height:15px; border-width:2px; position:absolute; }
+    .spin-btn.busy .bt { opacity:0; } .spin-btn.busy .sp { display:block; }
+  </style>
+</head>
+<body>
+<div class="auth-top">
+  <a href="/" class="brand-link">Skillmart</a>
+  <a href="/services.html" class="btn btn-ghost btn-sm">Каталог</a>
+</div>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-toggle">
+      <button class="toggle-btn" id="tab-l" onclick="sw('login')">Войти</button>
+      <button class="toggle-btn" id="tab-r" onclick="sw('register')">Регистрация</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-form" id="f-login">
+      <h2 class="auth-heading">С возвращением!</h2>
+      <p class="auth-sub">Войдите в аккаунт Skillmart</p>
+      <form onsubmit="doLogin(event)">
+        <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="you@example.com" required autocomplete="email"/></div>
+        <div class="form-group"><label>Пароль</label><input type="password" id="l-pass" placeholder="••••••••" required autocomplete="current-password"/></div>
+        <div id="l-err" class="error-msg"></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg mt-2 spin-btn" id="l-btn" style="position:relative">
+          <span class="bt">Войти</span><div class="spinner sp" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+        </button>
+      </form>
+      <div class="auth-foot">Нет аккаунта? <a href="#" onclick="sw('register');return false">Зарегистрируйтесь</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-form" id="f-reg">
+      <h2 class="auth-heading">Создайте аккаунт</h2>
+      <p class="auth-sub">Займёт меньше минуты</p>
+      <form onsubmit="doReg(event)">
+        <div class="form-group">
+          <label>Ваша роль</label>
+          <div class="role-grid">
+            <label class="role-opt sel" id="ro-c" onclick="setRole('customer')">
+              <input type="radio" name="role" value="customer" checked/>
+              <div class="role-emoji">🛍️</div><div class="role-lbl">Заказчик</div><div class="role-hint">Ищу специалистов</div>
+            </label>
+            <label class="role-opt" id="ro-e" onclick="setRole('executor')">
+              <input type="radio" name="role" value="executor"/>
+              <div class="role-emoji">🧑‍💻</div><div class="role-lbl">Исполнитель</div><div class="role-hint">Предлагаю услуги</div>
+            </label>
+          </div>
+        </div>
+        <div class="form-group"><label>Имя</label><input type="text" id="r-name" placeholder="Иван Иванов" required autocomplete="name"/></div>
+        <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com" required autocomplete="email"/></div>
+        <div class="form-group"><label>Пароль <span style="font-weight:400;color:var(--muted)">мин. 6 символов</span></label><input type="password" id="r-pass" placeholder="••••••••" minlength="6" required autocomplete="new-password"/></div>
+        <div id="r-err" class="error-msg"></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg mt-2 spin-btn" id="r-btn" style="position:relative">
+          <span class="bt">Создать аккаунт</span><div class="spinner sp" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+        </button>
+      </form>
+      <div class="auth-foot">Уже есть аккаунт? <a href="#" onclick="sw('login');return false">Войдите</a></div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let role = 'customer';
+function sw(t) {
+  ['login','register'].forEach(x => {
+    document.getElementById('f-'+x.replace('register','reg')).classList.toggle('active', t===x);
+    document.getElementById('tab-'+x.charAt(0)).classList.toggle('active', t===x);
+  });
+}
+function setRole(r) { role=r; document.getElementById('ro-c').classList.toggle('sel',r==='customer'); document.getElementById('ro-e').classList.toggle('sel',r==='executor'); }
+function setBusy(id, b) { const el=document.getElementById(id); el.classList.toggle('busy',b); el.disabled=b; }
+function showErr(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.classList.add('show'); }
+function clrErr(id) { document.getElementById(id).classList.remove('show'); }
+
+async function doLogin(e) {
+  e.preventDefault(); clrErr('l-err'); setBusy('l-btn',true);
+  try {
+    const d = await api('/auth/login','POST',{email:document.getElementById('l-email').value.trim(),password:document.getElementById('l-pass').value});
+    if (d?.token) { Storage.setToken(d.token); Storage.setUser(d.user); toastOk('Добро пожаловать, '+d.user.name.split(' ')[0]+'!'); setTimeout(()=>{ location.href='/dashboard.html'; },700); }
+    else showErr('l-err','Ошибка входа');
+  } catch(e){ showErr('l-err', e.message||'Ошибка входа'); }
+  finally { setBusy('l-btn',false); }
+}
+async function doReg(e) {
+  e.preventDefault(); clrErr('r-err'); setBusy('r-btn',true);
+  try {
+    const d = await api('/auth/register','POST',{name:document.getElementById('r-name').value.trim(),email:document.getElementById('r-email').value.trim(),password:document.getElementById('r-pass').value,role});
+    if (d?.token) { Storage.setToken(d.token); Storage.setUser(d.user); toastOk('Аккаунт создан! Добро пожаловать!'); setTimeout(()=>{ location.href='/dashboard.html'; },700); }
+    else showErr('r-err','Что-то пошло не так');
+  } catch(e){ showErr('r-err', e.message||'Ошибка регистрации'); }
+  finally { setBusy('r-btn',false); }
+}
+sw(qp('mode')==='register'?'register':'login');
+ifAuth();
+</script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Услуга — Skillmart</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    .page-top { background:var(--surface);border-bottom:1.5px solid rgba(0,0,0,.09);padding:.9rem 2rem;display:flex;align-items:center;gap:.85rem;flex-wrap:wrap;justify-content:space-between; }
+    .page-logo { font-family:'Bricolage Grotesque',sans-serif;font-size:1.05rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none; }
+    .breadcrumb { display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--muted); }
+    .breadcrumb a { color:var(--muted);transition:color .18s; } .breadcrumb a:hover { color:var(--text); }
+    .breadcrumb span { color:var(--subtle); }
+    .svc-layout { display:grid;grid-template-columns:1fr 308px;gap:2rem;padding:2rem;max-width:1100px;margin:0 auto; }
+    .svc-title { font-family:'Bricolage Grotesque',sans-serif;font-size:1.55rem;font-weight:800;line-height:1.15;letter-spacing:-.03em;margin-bottom:.85rem; }
+    .svc-rating-bar { display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-bottom:1.25rem;font-size:.82rem;color:var(--muted); }
+    .svc-meta-strip { display:flex;gap:1.35rem;flex-wrap:wrap;padding:.85rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:1.4rem; }
+    .svc-meta-item .lbl { font-size:.65rem;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.07em; }
+    .svc-meta-item .val { font-weight:600;font-size:.86rem;margin-top:.1rem; }
+    .svc-desc { font-size:.9rem;line-height:1.82;white-space:pre-wrap; }
+    .svc-tags { display:flex;gap:.38rem;flex-wrap:wrap;margin-top:1.25rem; }
+    .svc-tag { padding:.18rem .6rem;border-radius:100px;background:var(--surface2);border:1px solid var(--border);font-size:.72rem;color:var(--muted);text-decoration:none;transition:all .18s;display:inline-block; }
+    .svc-tag:hover { background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2);color:var(--indigo); }
+    .sidebar-sticky { position:sticky;top:1.5rem;align-self:start;display:flex;flex-direction:column;gap:.9rem; }
+    .order-box { background:var(--surface);border-radius:var(--r-xl);border:1.5px solid rgba(0,0,0,.1);box-shadow:0 8px 40px rgba(99,102,241,.1);padding:1.35rem; }
+    .order-price-big { font-family:'Bricolage Grotesque',sans-serif;font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1; }
+    .order-detail-row { display:flex;justify-content:space-between;align-items:center;font-size:.83rem;padding:.38rem 0; }
+    .order-detail-row .lbl { color:var(--muted); } .order-detail-row .val { font-weight:600; }
+    .exec-card { background:var(--surface);border-radius:var(--r-xl);border:1.5px solid rgba(0,0,0,.09);overflow:hidden; }
+    .exec-card-top { background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.05));padding:1.25rem 1.25rem 0; }
+    .exec-av-big { width:52px;height:52px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(99,102,241,.35);overflow:hidden; }
+    .exec-av-big img { width:100%;height:100%;object-fit:cover; }
+    .exec-name-row { display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem; }
+    .exec-name  { font-weight:700;font-size:.95rem; }
+    .exec-since { font-size:.7rem;color:var(--muted); }
+    .avail-badge { display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .6rem;border-radius:100px;font:600 .68rem 'Inter',sans-serif; }
+    .avail-available { background:rgba(16,185,129,.1);color:var(--green); }
+    .avail-busy      { background:rgba(245,158,11,.1);color:var(--amber); }
+    .avail-vacation  { background:rgba(107,107,128,.1);color:var(--muted); }
+    .avail-dot { width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0; }
+    .exec-stats-row { display:flex;gap:0;border-top:1px solid var(--border);margin-top:.85rem; }
+    .exec-stat-item { flex:1;text-align:center;padding:.75rem .4rem;border-right:1px solid var(--border); }
+    .exec-stat-item:last-child { border-right:none; }
+    .es-val { font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.05rem;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .es-lbl { font-size:.62rem;color:var(--subtle);margin-top:.08rem; }
+    .exec-card-body { padding:1rem 1.25rem 1.25rem; }
+    .exec-bio  { font-size:.82rem;line-height:1.65;color:var(--muted);margin-bottom:.75rem; }
+    .skills-list { display:flex;flex-direction:column;gap:.45rem;margin-bottom:.85rem; }
+    .skill-row  { display:flex;align-items:center;gap:.65rem; }
+    .skill-name { font-size:.75rem;font-weight:500;min-width:80px;flex-shrink:0; }
+    .skill-bar  { flex:1;height:5px;background:var(--surface2);border-radius:100px;overflow:hidden; }
+    .skill-fill { height:100%;background:var(--grad);border-radius:100px; }
+    .skill-pct  { font-size:.68rem;color:var(--muted);min-width:28px;text-align:right; }
+    .social-row { display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.75rem; }
+    .soc-btn { display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font:500 .72rem 'Inter',sans-serif;color:var(--muted);text-decoration:none;transition:all .18s; }
+    .soc-btn:hover { border-color:var(--indigo);color:var(--indigo);background:rgba(99,102,241,.05); }
+    .level-badge { display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .7rem;border-radius:100px;font:700 .72rem 'Inter',sans-serif; }
+    .lvl-1 { background:rgba(107,107,128,.1);color:var(--muted); }
+    .lvl-2 { background:rgba(59,130,246,.1);color:var(--blue); }
+    .lvl-3 { background:rgba(245,158,11,.1);color:var(--amber); }
+    .lvl-4 { background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.12));color:var(--indigo); }
+    .portfolio-grid { display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem; }
+    .port-item { background:var(--grad-soft);border:1px solid rgba(99,102,241,.12);border-radius:10px;padding:.65rem .75rem;text-decoration:none;color:var(--text);transition:all .18s; }
+    .port-item:hover { border-color:var(--indigo);background:rgba(99,102,241,.07); }
+    .port-title { font-size:.74rem;font-weight:600;margin-bottom:.1rem; }
+    .port-desc  { font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .resp-badge { display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--green);font-weight:600;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);border-radius:100px;padding:.18rem .6rem; }
+    .reviews-sec { margin-top:2rem; }
+    .reviews-sec h2 { font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:1rem; }
+    .review-card { background:var(--surface2);border-radius:var(--r-lg);padding:1rem 1.15rem;margin-bottom:.6rem;border:1px solid var(--border); }
+    .review-hdr  { display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem; }
+    .review-av   { width:30px;height:30px;border-radius:50%;background:var(--grad-soft);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.75rem;color:var(--indigo);flex-shrink:0;overflow:hidden; }
+    .review-av img { width:100%;height:100%;object-fit:cover; }
+    .rating-sum  { display:flex;align-items:center;gap:1.1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.25rem;margin-bottom:1rem; }
+    .rating-big  { font-family:'Bricolage Grotesque',sans-serif;font-size:2.1rem;font-weight:800; }
+    @media(max-width:900px){.svc-layout{grid-template-columns:1fr;padding:1rem}.sidebar-sticky{position:static}}
+    @media(max-width:600px){.page-top{padding:.85rem 1rem}}
+  </style>
+</head>
+<body>
+<div class="page-top">
+  <div style="display:flex;align-items:center;gap:.85rem">
+    <a href="/" class="page-logo"><a href="/" style="text-decoration:none;color:inherit">Skillmart</a></a>
+    <div class="breadcrumb">
+      <span style="color:var(--subtle)">/</span>
+      <a href="/services.html">Каталог</a>
+      <span style="color:var(--subtle)">/</span>
+      <span id="bc-cat">Услуга</span>
+    </div>
+  </div>
+  <div id="nav-a">
+    <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
+    <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Начать</a>
+  </div>
+</div>
+
+<div id="page-wrap">
+  <div class="loader-wrap" style="padding-top:6rem"><div class="spinner"></div></div>
+</div>
+
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Оформить заказ</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div id="m-title" style="font-weight:600;font-size:.86rem;color:var(--muted);background:var(--surface2);border-radius:8px;padding:.55rem .8rem;margin-bottom:1rem;"></div>
+      <div class="form-group"><label>Пожелания / техзадание</label><textarea id="o-req" rows="4" placeholder="Опишите детали: стиль, примеры, ссылки на референсы..."></textarea></div>
+      <div class="divider"></div>
+      <div class="order-detail-row"><span class="lbl">Стоимость</span><span class="val" id="m-price"></span></div>
+      <div class="order-detail-row"><span class="lbl">Срок</span><span class="val" id="m-days"></span></div>
+      <div id="bal-info" style="display:none;margin-top:.55rem;padding:.55rem .75rem;border-radius:8px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.15);font-size:.78rem"></div>
+      <div id="o-err" class="error-msg" style="margin-top:.6rem"></div>
+      <button class="btn btn-primary btn-block btn-lg mt-2" id="o-btn" onclick="doOrder()">✓ Подтвердить заказ</button>
+      <button class="btn btn-ghost btn-block mt-1" onclick="location.href='/dashboard.html'" id="o-go-bal" style="display:none">Пополнить баланс →</button>
+      <p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:.55rem">Средства списываются сразу. Возврат при отмене.</p>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const sid = qp('id');
+let svc = null;
+
+function levelInfo(n) {
+  const c = +n||0;
+  if(c>=100) return {cls:'lvl-4',ico:'💎',lbl:'Мастер'};
+  if(c>=30)  return {cls:'lvl-3',ico:'🔥',lbl:'Эксперт'};
+  if(c>=10)  return {cls:'lvl-2',ico:'⭐',lbl:'Профи'};
+  return          {cls:'lvl-1',ico:'🌱',lbl:'Новичок'};
+}
+function availInfo(a) {
+  const m = {available:['avail-available','🟢','Доступен'],busy:['avail-busy','🟡','Занят'],vacation:['avail-vacation','⛔','В отпуске']};
+  return m[a]||m.available;
+}
+function avatarHtml(avatar, name, cls='', style='') {
+  if (avatar) return `<img src="${esc(avatar)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>`;
+  return `<span style="${style}">${esc((name||'?').charAt(0).toUpperCase())}</span>`;
+}
+
+async function init() {
+  if (!sid) { location.href='/services.html'; return; }
+  if (Storage.user) document.getElementById('nav-a').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+  try {
+    const [s, revs] = await Promise.all([api('/services/'+sid), api('/reviews?service_id='+sid)]);
+    svc = s;
+    document.title = s.title + ' — Skillmart';
+    document.getElementById('bc-cat').textContent = (s.category_icon||'') + ' ' + s.category_name;
+    render(s, revs||[]);
+
+    // Pre-load balance info if logged in customer
+    if (Storage.user?.role === 'customer') {
+      const bal = await api('/balance').catch(()=>null);
+      if (bal) {
+        const balInfo = document.getElementById('bal-info');
+        balInfo.style.display = 'block';
+        balInfo.innerHTML = `💰 Ваш баланс: <strong>${fmtPrice(bal.balance?.amount||0)}</strong>`;
+        if (parseFloat(bal.balance?.amount||0) < parseFloat(s.price)) {
+          balInfo.style.background = 'rgba(239,68,68,.07)';
+          balInfo.style.borderColor = 'rgba(239,68,68,.15)';
+          balInfo.innerHTML += ` &nbsp;—&nbsp; <span style="color:var(--red)">недостаточно для заказа</span>`;
+          document.getElementById('o-go-bal').style.display = 'block';
+        }
+      }
+    }
+  } catch(e) {
+    document.getElementById('page-wrap').innerHTML = `
+      <div style="max-width:440px;margin:6rem auto;padding:2rem;text-align:center">
+        <div style="font-size:2.5rem;opacity:.35;margin-bottom:.75rem">⚠️</div>
+        <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;margin-bottom:.4rem">Услуга не найдена</h3>
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.25rem">${esc(e.message)}</p>
+        <a href="/services.html" class="btn btn-primary">В каталог</a>
+      </div>`;
+  }
+}
+
+function renderExec(s) {
+  const avg  = parseFloat(s.executor_rating||s.rating||0);
+  const lvl  = levelInfo(s.executor_completed);
+  const [aC,aI,aL] = availInfo(s.availability);
+  const skills   = s.skills||[];
+  const socials  = s.socials||{};
+  const portfolio = s.portfolio||[];
+
+  const skillsHtml = skills.slice(0,5).map(sk => {
+    const pct = Math.round((+sk.level||3)/5*100);
+    return `<div class="skill-row"><span class="skill-name">${esc(sk.name)}</span><div class="skill-bar"><div class="skill-fill" style="width:${pct}%"></div></div><span class="skill-pct">${pct}%</span></div>`;
+  }).join('');
+
+  const socialDefs = [['github','GitHub','⌥'],['behance','Behance','Bē'],['dribbble','Dribbble','🏀'],['telegram','TG','✈️'],['linkedin','in','in'],['website','Сайт','🌐']];
+  const socialsHtml = socialDefs.filter(([k])=>socials[k]).map(([k,l,i])=>`<a href="${esc(socials[k])}" target="_blank" class="soc-btn">${i} ${l}</a>`).join('');
+
+  const portHtml = portfolio.slice(0,4).map(p=>`<a href="${esc(p.url)}" target="_blank" class="port-item"><div class="port-title">${esc(p.title)}</div><div class="port-desc">${esc(p.description||p.url)}</div></a>`).join('');
+
+  return `<div class="exec-card">
+    <div class="exec-card-top">
+      <div class="exec-name-row">
+        <div class="exec-av-big">${avatarHtml(s.executor_avatar, s.executor_name, '', 'font-size:1.25rem;font-weight:700;color:#fff')}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <div class="exec-name">${esc(s.executor_name)}</div>
+            <span class="level-badge ${lvl.cls}">${lvl.ico} ${lvl.lbl}</span>
+            <span class="avail-badge ${aC}"><span class="avail-dot"></span>${aL}</span>
+          </div>
+          <div class="exec-since">На Skillmart с ${fmtDate(s.executor_since||s.created_at)}</div>
+        </div>
+      </div>
+      <div class="exec-stats-row">
+        <div class="exec-stat-item"><div class="es-val">${s.executor_completed||0}</div><div class="es-lbl">заказов</div></div>
+        <div class="exec-stat-item"><div class="es-val">${avg.toFixed(1)}</div><div class="es-lbl">рейтинг</div></div>
+        <div class="exec-stat-item"><div class="es-val">${s.executor_reviews||0}</div><div class="es-lbl">отзывов</div></div>
+        <div class="exec-stat-item"><div class="es-val">${s.executor_services||1}</div><div class="es-lbl">услуг</div></div>
+      </div>
+    </div>
+    <div class="exec-card-body">
+      ${s.specialization?`<div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted);margin-bottom:.6rem"><span>💼</span>${esc(s.specialization)}</div>`:''}
+      ${s.response_time?`<div style="margin-bottom:.6rem"><span class="resp-badge">⚡ ${esc(s.response_time)}</span></div>`:''}
+      ${s.hourly_rate?`<div style="font-size:.76rem;color:var(--muted);margin-bottom:.6rem">💰 ${fmtPrice(s.hourly_rate)}/час</div>`:''}
+      ${s.executor_bio?`<div class="exec-bio">${esc(s.executor_bio)}</div>`:''}
+      ${skillsHtml?`<div class="skills-list">${skillsHtml}</div>`:''}
+      ${s.languages?.length?`<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.75rem">${s.languages.map(l=>`<span class="svc-tag">${esc(l)}</span>`).join('')}</div>`:''}
+      ${socialsHtml?`<div class="social-row">${socialsHtml}</div>`:''}
+      ${portHtml?`<div class="portfolio-grid">${portHtml}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function render(s, reviews) {
+  const user = Storage.user;
+  const avg  = parseFloat(s.rating)||0;
+  let orderBtn = '';
+  if (!user) orderBtn = `<a href="/auth.html" class="btn btn-primary btn-block btn-lg">Войдите чтобы заказать</a>`;
+  else if (user.id===s.executor_id) orderBtn = `<a href="/dashboard.html" class="btn btn-outline btn-block">Редактировать в кабинете</a>`;
+  else if (user.role==='customer') orderBtn = `<button class="btn btn-primary btn-block btn-lg" onclick="openModal()">🛒 Заказать услугу</button>`;
+  else orderBtn = `<p style="text-align:center;font-size:.76rem;color:var(--muted)">Исполнители не могут заказывать</p>`;
+
+  document.getElementById('page-wrap').innerHTML = `
+    <div class="svc-layout">
+      <div>
+        <h1 class="svc-title">${esc(s.title)}</h1>
+        <div class="svc-rating-bar">
+          ${fmtStars(avg)} <span>${avg.toFixed(1)}</span>
+          <span style="color:var(--border2)">·</span><span>${s.reviews_count} отзывов</span>
+          <span style="color:var(--border2)">·</span><span>📦 ${s.orders_count} заказов</span>
+        </div>
+        <div class="svc-meta-strip">
+          <div class="svc-meta-item"><div class="lbl">Цена</div><div class="val grad-text" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1rem">от ${fmtPrice(s.price)}</div></div>
+          <div class="svc-meta-item"><div class="lbl">Срок</div><div class="val">⏱ ${s.deadline} дн.</div></div>
+          <div class="svc-meta-item"><div class="lbl">Категория</div><div class="val">${esc(s.category_icon||'')} ${esc(s.category_name)}</div></div>
+          <div class="svc-meta-item"><div class="lbl">Добавлена</div><div class="val">${fmtDate(s.created_at)}</div></div>
+        </div>
+        <p class="svc-desc">${esc(s.description)}</p>
+        ${s.tags?.length?`<div class="svc-tags">${s.tags.map(t=>`<a href="/services.html?search=${encodeURIComponent(t)}" class="svc-tag">#${esc(t)}</a>`).join('')}</div>`:''}
+        <div class="reviews-sec">
+          <h2>Отзывы</h2>
+          ${reviews.length?`
+            <div class="rating-sum"><div class="rating-big">${avg.toFixed(1)}</div><div>${fmtStars(avg)}<div style="font-size:.75rem;color:var(--muted);margin-top:.18rem">${reviews.length} отзыв${reviews.length===1?'':'ов'}</div></div></div>
+            ${reviews.map(r=>`<div class="review-card">
+              <div class="review-hdr">
+                <div class="review-av">${avatarHtml(r.customer_avatar,r.customer_name,'','font-weight:600;font-size:.75rem;color:var(--indigo)')}</div>
+                <div style="flex:1"><div style="font-weight:600;font-size:.86rem">${esc(r.customer_name)}</div><div style="font-size:.7rem;color:var(--subtle)">${fmtDate(r.created_at)}</div></div>
+                <div>${fmtStars(r.rating)}</div>
+              </div>
+              ${r.comment?`<div style="font-size:.84rem;line-height:1.6">${esc(r.comment)}</div>`:''}
+            </div>`).join('')}`
+          :`<div class="empty"><div class="empty-icon">💬</div><h3>Пока нет отзывов</h3></div>`}
+        </div>
+      </div>
+      <div class="sidebar-sticky">
+        <div class="order-box">
+          <div class="order-price-big">от ${fmtPrice(s.price)}</div>
+          <div style="font-size:.72rem;color:var(--muted);margin:.22rem 0 1.1rem">Цена обсуждается в заказе</div>
+          <div style="margin-bottom:1.2rem">
+            <div class="order-detail-row"><span class="lbl">⏱ Срок</span><span class="val">${s.deadline} дней</span></div>
+            <div class="order-detail-row"><span class="lbl">📦 Заказов</span><span class="val">${s.orders_count}</span></div>
+            <div class="order-detail-row"><span class="lbl">⭐ Рейтинг</span><span class="val">${avg.toFixed(1)} / 5</span></div>
+          </div>
+          ${orderBtn}
+        </div>
+        ${renderExec(s)}
+      </div>
+    </div>`;
+  document.getElementById('m-title').textContent = s.title;
+  document.getElementById('m-price').textContent = fmtPrice(s.price);
+  document.getElementById('m-days').textContent  = s.deadline + ' дней';
+}
+
+function openModal() { if (!requireAuth()) return; document.getElementById('o-err').classList.remove('show'); document.getElementById('o-req').value=''; document.getElementById('order-modal').classList.add('open'); }
+function closeModal() { document.getElementById('order-modal').classList.remove('open'); }
+document.getElementById('order-modal').addEventListener('click', e => { if(e.target.id==='order-modal') closeModal(); });
+
+async function doOrder() {
+  const btn = document.getElementById('o-btn');
+  const err = document.getElementById('o-err');
+  err.classList.remove('show'); btn.disabled=true; btn.textContent='Оформляем...';
+  try {
+    await api('/orders','POST',{service_id:sid,requirements:document.getElementById('o-req').value.trim()||undefined});
+    closeModal(); toastOk('Заказ оформлен! Средства зарезервированы.');
+    setTimeout(()=>location.href='/dashboard.html',1100);
+  } catch(e) {
+    err.textContent=e.message||'Ошибка'; err.classList.add('show');
+    if (e.message?.includes('баланс')||e.message?.includes('средств')) {
+      document.getElementById('o-go-bal').style.display = 'block';
+    }
+    btn.disabled=false; btn.textContent='✓ Подтвердить заказ';
+  }
+}
+init();
+</script>
+</body>
+</html>

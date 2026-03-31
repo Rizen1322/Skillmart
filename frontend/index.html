@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skillmart — маркетплейс цифровых услуг</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    /* floating pill nav */
+    .topbar {
+      position: fixed; top: 1.1rem; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: .45rem;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(24px) saturate(180%);
+      border: 1.5px solid rgba(99,102,241,.15);
+      border-radius: 100px; padding: .38rem .4rem .38rem 1.15rem;
+      box-shadow: 0 4px 28px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05);
+      z-index: 200; white-space: nowrap;
+    }
+    .topbar-logo { font-family:'Bricolage Grotesque',sans-serif; font-size:1.05rem; font-weight:800; background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .topbar-div  { width:1px; height:16px; background:rgba(0,0,0,.1); flex-shrink:0; margin:0 .2rem; }
+    .topbar-cat  { padding:.34rem .8rem; border-radius:100px; font:500 .8rem 'Inter',sans-serif; color:var(--muted); transition:all .18s; text-decoration:none; display:inline-block; }
+    .topbar-cat:hover { color:var(--text); background:rgba(0,0,0,.05); }
+
+    /* hero */
+    .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 5vw 80px; position:relative; overflow:hidden; }
+    .orb { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
+    .orb1 { width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);top:-100px;left:-80px;animation:flt 9s ease-in-out infinite; }
+    .orb2 { width:420px;height:420px;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);bottom:-80px;right:-80px;animation:flt 11s ease-in-out infinite reverse; }
+    @keyframes flt { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-28px)} }
+    .hero-pill { display:inline-flex;align-items:center;gap:.45rem;padding:.28rem .9rem;border-radius:100px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.18);font:600 .74rem 'Inter',sans-serif;color:var(--indigo);margin-bottom:1.6rem;z-index:1;animation:fup .7s ease both; }
+    .pill-dot { width:5px;height:5px;border-radius:50%;background:var(--grad);flex-shrink:0; }
+    h1 { font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(2.5rem,6.5vw,5rem);font-weight:800;line-height:1.04;letter-spacing:-.04em;z-index:1;animation:fup .7s .1s ease both; }
+    .hero-sub { max-width:490px;font-size:clamp(.9rem,1.7vw,1.05rem);color:var(--muted);margin:1.3rem auto 0;line-height:1.72;z-index:1;animation:fup .7s .2s ease both; }
+    .hero-btns { display:flex;gap:.75rem;margin-top:2rem;justify-content:center;flex-wrap:wrap;z-index:1;animation:fup .7s .3s ease both; }
+    .hero-stats { display:flex;gap:2.5rem;margin-top:3.5rem;z-index:1;animation:fup .7s .4s ease both;flex-wrap:wrap;justify-content:center; }
+    .h-num { font-family:'Bricolage Grotesque',sans-serif;font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .h-lbl { font-size:.72rem;color:var(--subtle);margin-top:.08rem; }
+
+    /* sections */
+    .sec { padding:88px 5vw; }
+    .sec-badge { display:inline-flex;align-items:center;gap:.35rem;font:700 .68rem 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.75rem; }
+    .sec-badge::before { content:'';width:14px;height:2px;background:var(--grad);border-radius:2px; }
+    .sec-title { font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(1.65rem,3.5vw,2.6rem);font-weight:800;letter-spacing:-.04em;line-height:1.08;margin-bottom:.8rem; }
+    .sec-sub { color:var(--muted);max-width:480px;font-size:.92rem;line-height:1.72; }
+    .tc { text-align:center; } .tc .sec-badge { justify-content:center; } .tc .sec-sub { margin:0 auto; }
+
+    /* category grid */
+    .cat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;margin-top:2.5rem; }
+    .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.25rem .9rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:block;color:var(--text); }
+    .cat-card:hover { border-color:rgba(99,102,241,.3);transform:translateY(-3px);box-shadow:0 12px 36px rgba(99,102,241,.12);background:rgba(99,102,241,.03); }
+    .cat-emoji { font-size:1.75rem;margin-bottom:.5rem;display:block; }
+    .cat-name  { font:600 .82rem 'Inter',sans-serif; }
+    .cat-cnt   { font-size:.68rem;color:var(--subtle);margin-top:.15rem; }
+
+    /* steps */
+    .steps-bg { background:linear-gradient(180deg,var(--bg) 0%,rgba(99,102,241,.04) 50%,var(--bg) 100%); }
+    .steps-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem;margin-top:2.75rem; }
+    .step-card { background:var(--surface);border-radius:var(--r-xl);padding:1.5rem;border:1.5px solid var(--border); }
+    .step-num { font-family:'Bricolage Grotesque',sans-serif;font-size:2.75rem;font-weight:800;background:rgba(99,102,241,.1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:.55rem; }
+    .step-t { font:700 .9rem 'Inter',sans-serif;margin-bottom:.35rem; }
+    .step-d { font-size:.82rem;color:var(--muted);line-height:1.65; }
+
+    /* popular grid */
+    .pop-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:1.1rem;margin-top:1.6rem; }
+
+    /* dark */
+    .dark-sec { background:#0d0d17;color:#fff; }
+    .dark-sec .sec-title { color:#fff; }
+    .dark-sec .sec-sub { color:rgba(255,255,255,.5); }
+    .dark-sec .sec-badge { color:rgba(167,139,250,.9); }
+    .dark-sec .sec-badge::before { background:rgba(167,139,250,.9); }
+    .trust-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1.5rem;margin-top:2.5rem; }
+    .trust-ico { width:48px;height:48px;border-radius:13px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto .8rem; }
+    .trust-t { font:600 .88rem 'Inter',sans-serif;margin-bottom:.3rem;text-align:center; }
+    .trust-d { font-size:.78rem;color:rgba(255,255,255,.46);line-height:1.65;text-align:center; }
+
+    /* cta */
+    .cta-wrap { padding:80px 5vw;text-align:center; }
+    .cta-box { max-width:620px;margin:0 auto;background:var(--grad);border-radius:28px;padding:3.25rem 2.5rem;position:relative;overflow:hidden; }
+    .cta-box::before { content:'';position:absolute;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.06);top:-100px;right:-70px;pointer-events:none; }
+    .cta-box h2 { font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(1.55rem,3.5vw,2.4rem);font-weight:800;letter-spacing:-.04em;color:#fff;margin-bottom:.75rem; }
+    .cta-box p { color:rgba(255,255,255,.7);margin-bottom:1.75rem;font-size:.92rem; }
+    .cta-btns { display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap; }
+    .btn-white { padding:.7rem 1.75rem;border-radius:10px;background:#fff;color:var(--indigo);font:700 .88rem 'Inter',sans-serif;border:none;cursor:pointer;transition:all .2s;box-shadow:0 2px 14px rgba(0,0,0,.14);text-decoration:none;display:inline-flex;align-items:center; }
+    .btn-white:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.18); }
+    .btn-glass { padding:.7rem 1.75rem;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font:600 .88rem 'Inter',sans-serif;border:1.5px solid rgba(255,255,255,.3);cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center; }
+    .btn-glass:hover { background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55); }
+
+    /* footer */
+    footer { background:#0d0d17;color:rgba(255,255,255,.46);padding:52px 5vw 32px; }
+    .foot-grid { display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:2.5rem;margin-bottom:2.5rem; }
+    .f-logo { font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.6rem; }
+    .f-desc { font-size:.8rem;line-height:1.7; }
+    .f-col h4 { color:#fff;font:600 .82rem 'Inter',sans-serif;margin-bottom:.8rem; }
+    .f-col ul { list-style:none;display:flex;flex-direction:column;gap:.4rem; }
+    .f-col ul a { font-size:.8rem;color:rgba(255,255,255,.4);text-decoration:none;transition:color .18s; }
+    .f-col ul a:hover { color:#fff; }
+    .foot-bot { border-top:1px solid rgba(255,255,255,.07);padding-top:1.3rem;display:flex;justify-content:space-between;align-items:center;font-size:.76rem;flex-wrap:wrap;gap:.5rem; }
+    .socials { display:flex;gap:.5rem; }
+    .soc { width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:.76rem;cursor:pointer;transition:background .18s; }
+    .soc:hover { background:rgba(99,102,241,.35); }
+
+    @keyframes fup { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+    .reveal { opacity:0;transform:translateY(18px);transition:opacity .55s,transform .55s; }
+    .reveal.v { opacity:1;transform:none; }
+    @media(max-width:768px) { .foot-grid{grid-template-columns:1fr 1fr} .foot-grid>:first-child{grid-column:1/-1}  }
+    @media(max-width:480px) { .foot-grid{grid-template-columns:1fr} .hero-btns{flex-direction:column;align-items:center} }
+  </style>
+</head>
+<body>
+
+<!-- Floating pill nav -->
+<div class="topbar">
+  <span class="topbar-logo">Skillmart</span>
+  <div class="topbar-div"></div>
+  <a href="/services.html" class="topbar-cat">Каталог</a>
+  <div class="topbar-right" id="nav-actions">
+    <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
+    <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Начать →</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+  <div class="hero-pill"><span class="pill-dot"></span>Маркетплейс цифровых услуг</div>
+  <h1>Найди нужного<br/><span class="grad-text">специалиста</span><br/>за минуты</h1>
+  <p class="hero-sub">Тысячи профессионалов — дизайнеры, разработчики, копирайтеры — готовы выполнить ваш заказ.</p>
+  <div class="hero-btns">
+    <a href="/services.html" class="btn btn-primary btn-lg">🔍 &nbsp;Найти услугу</a>
+    <a href="/auth.html?mode=register" class="btn btn-outline btn-lg">Стать исполнителем →</a>
+  </div>
+  <div class="hero-stats">
+    <div style="text-align:center"><div class="h-num" id="stat-n">...</div><div class="h-lbl">Услуг на платформе</div></div>
+    <div style="text-align:center"><div class="h-num">98%</div><div class="h-lbl">Довольных клиентов</div></div>
+    <div style="text-align:center"><div class="h-num">5 мин</div><div class="h-lbl">До первого отклика</div></div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="sec">
+  <div class="tc">
+    <div class="sec-badge">Категории</div>
+    <h2 class="sec-title">Чем может помочь Skillmart?</h2>
+    <p class="sec-sub">Всё необходимое для вашего бизнеса и проектов — в одном месте.</p>
+  </div>
+  <div class="cat-grid reveal">
+    <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-d">...</div></a>
+    <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-p">...</div></a>
+    <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-w">...</div></a>
+    <a href="/services.html?category=marketing"    class="cat-card"><span class="cat-emoji">📣</span><div class="cat-name">Маркетинг</div><div class="cat-cnt" id="c-m">...</div></a>
+    <a href="/services.html?category=video"        class="cat-card"><span class="cat-emoji">🎬</span><div class="cat-name">Видео</div><div class="cat-cnt" id="c-v">...</div></a>
+    <a href="/services.html?category=other"        class="cat-card"><span class="cat-emoji">🔧</span><div class="cat-name">Другое</div><div class="cat-cnt" id="c-o">...</div></a>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec steps-bg">
+  <div class="tc">
+    <div class="sec-badge">Как это работает</div>
+    <h2 class="sec-title">Три шага до результата</h2>
+    <p class="sec-sub">Никаких лишних переговоров. Находите, заказывайте, получайте.</p>
+  </div>
+  <div class="steps-grid reveal">
+    <div class="step-card"><div class="step-num">01</div><div class="step-t">Разместите заказ</div><div class="step-d">Выберите услугу из каталога или создайте заявку — исполнители откликнутся сами.</div></div>
+    <div class="step-card"><div class="step-num">02</div><div class="step-t">Получите предложения</div><div class="step-d">Сравните по рейтингу, срокам и ценам. Общайтесь в чате напрямую.</div></div>
+    <div class="step-card"><div class="step-num">03</div><div class="step-t">Оплатите и получите</div><div class="step-d">Средства заморожены до принятия работы. Платите только за результат.</div></div>
+  </div>
+</section>
+
+<!-- POPULAR -->
+<section class="sec">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:.25rem">
+    <div><div class="sec-badge">Популярное</div><h2 class="sec-title" style="margin-bottom:0">Топ услуг</h2></div>
+    <a href="/services.html" class="btn btn-outline btn-sm">Все услуги →</a>
+  </div>
+  <div class="pop-grid reveal" id="pop">
+    <div class="loader-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="sec dark-sec">
+  <div class="tc">
+    <div class="sec-badge">Почему Skillmart</div>
+    <h2 class="sec-title">Безопасно. Быстро. Качественно.</h2>
+    <p class="sec-sub">Мы берём лучшее у ведущих мировых платформ.</p>
+  </div>
+  <div class="trust-grid reveal">
+    <div><div class="trust-ico">🔒</div><div class="trust-t">Безопасная оплата</div><div class="trust-d">Деньги заморожены до принятия работы.</div></div>
+    <div><div class="trust-ico">⚡</div><div class="trust-t">Быстрый старт</div><div class="trust-d">Первые отклики за несколько минут.</div></div>
+    <div><div class="trust-ico">⭐</div><div class="trust-t">Проверенные исполнители</div><div class="trust-d">Рейтинги и отзывы помогут выбрать лучшего.</div></div>
+    <div><div class="trust-ico">💬</div><div class="trust-t">Чат в заказе</div><div class="trust-d">Общайтесь с исполнителем напрямую.</div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-wrap">
+  <div class="cta-box reveal">
+    <h2>Готовы начать?</h2>
+    <p>Разместите первый заказ или создайте услугу — бесплатно.</p>
+    <div class="cta-btns">
+      <a href="/services.html" class="btn-white">Найти исполнителя</a>
+      <a href="/auth.html?mode=register" class="btn-glass">Стать исполнителем</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div><div class="f-logo">Skillmart</div><p class="f-desc">Маркетплейс цифровых услуг для бизнеса и частных заказчиков.</p></div>
+    <div class="f-col"><h4>Платформа</h4><ul><li><a href="#">О нас</a></li><li><a href="#">Блог</a></li><li><a href="#">Помощь</a></li></ul></div>
+    <div class="f-col"><h4>Заказчикам</h4><ul><li><a href="/services.html">Найти услугу</a></li><li><a href="#">Гарантии</a></li></ul></div>
+    <div class="f-col"><h4>Исполнителям</h4><ul><li><a href="/auth.html?mode=register">Начать работать</a></li><li><a href="#">FAQ</a></li></ul></div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2024 Skillmart</span>
+    <div class="socials"><div class="soc">𝕏</div><div class="soc">in</div><div class="soc">✈</div></div>
+  </div>
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+function svcCard(s) {
+  return `<a href="/service.html?id=${s.id}" class="svc-card">
+    <div class="svc-card-bar"></div>
+    <div class="svc-card-top">
+      <span class="svc-cat-pill">${esc(s.category_icon||'')} ${esc(s.category_name)}</span>
+      <div class="svc-card-icon-wrap">${catIcons[s.category_slug]||'📦'}</div>
+    </div>
+    <div class="svc-card-body">
+      <div class="svc-card-title">${esc(s.title)}</div>
+      <div class="svc-author">
+        <div class="svc-author-av">${esc(s.executor_name.charAt(0))}</div>
+        <span class="svc-author-name">${esc(s.executor_name)}</span>
+      </div>
+      <div class="svc-stats">
+        <div class="svc-stat">${fmtStars(s.rating)} <span>${parseFloat(s.rating||0).toFixed(1)}</span></div>
+        <div class="svc-stat">💬 <span>${s.reviews_count} отзывов</span></div>
+      </div>
+    </div>
+    <div class="svc-card-foot">
+      <div class="svc-deadline">⏱ ${s.deadline} дн.</div>
+      <div>
+        <div class="svc-price">от ${fmtPrice(s.price)}</div>
+      </div>
+    </div>
+  </a>`;
+}
+
+async function init() {
+  // Update nav
+  const nav = document.getElementById('nav-actions');
+  if (Storage.user) {
+    nav.innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+  }
+  // Popular
+  try {
+    const res = await api('/services?sort=rating&limit=4');
+    const pop = document.getElementById('pop');
+    if (res?.data?.length) {
+      document.getElementById('stat-n').textContent = (res.pagination.total||0) + '+';
+      pop.innerHTML = res.data.map(svcCard).join('');
+    } else {
+      pop.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><h3>Услуги появятся скоро</h3></div>';
+    }
+  } catch {}
+  // Category counts
+  const pairs = [['design','c-d'],['programming','c-p'],['writing','c-w'],['marketing','c-m'],['video','c-v'],['other','c-o']];
+  for (const [slug,id] of pairs) {
+    try {
+      const r = await api(`/services?category=${slug}&limit=1`);
+      const el = document.getElementById(id);
+      if (el && r) el.textContent = (r.pagination?.total||0) + ' услуг';
+    } catch {}
+  }
+}
+
+const obs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('v'); }), {threshold:.08});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+init();
+</script>
+</body>
+</html>

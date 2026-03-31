@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Личный кабинет — Skillmart</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    /* ── NOTIF BELL ──────────────────────────────── */
+    .notif-bell {
+      position:fixed; top:.9rem; right:1.2rem; z-index:300;
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .bell-btn {
+      width:38px; height:38px; border-radius:10px;
+      background:var(--surface); border:1.5px solid rgba(0,0,0,.1);
+      box-shadow:0 2px 8px rgba(0,0,0,.07);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; cursor:pointer; transition:all .18s; position:relative;
+    }
+    .bell-btn:hover { border-color:var(--indigo); }
+    .bell-count {
+      position:absolute; top:-5px; right:-5px;
+      min-width:16px; height:16px; border-radius:100px;
+      background:var(--red); color:#fff;
+      font:700 .62rem 'Inter',sans-serif;
+      display:flex; align-items:center; justify-content:center;
+      padding:0 3px; border:2px solid var(--bg);
+      opacity:0; transform:scale(.6); transition:all .2s;
+    }
+    .bell-count.show { opacity:1; transform:none; }
+    .bell-dropdown {
+      position:absolute; top:calc(100% + .55rem); right:0;
+      width:310px; max-height:380px; overflow-y:auto;
+      background:var(--surface); border-radius:var(--r-lg);
+      border:1.5px solid rgba(0,0,0,.1);
+      box-shadow:0 12px 48px rgba(0,0,0,.14);
+      opacity:0; pointer-events:none;
+      transform:translateY(-6px) scale(.97);
+      transition:all .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    .bell-dropdown.open { opacity:1; pointer-events:all; transform:none; }
+    .bell-header { padding:.7rem 1rem .5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .bell-header span { font:600 .82rem 'Inter',sans-serif; }
+    .bell-mark { font-size:.72rem; color:var(--indigo); cursor:pointer; font-weight:600; }
+    .bell-mark:hover { text-decoration:underline; }
+    .bell-item {
+      display:flex; align-items:flex-start; gap:.65rem;
+      padding:.7rem 1rem; transition:background .15s; cursor:pointer;
+      border-bottom:1px solid var(--border);
+    }
+    .bell-item:last-child { border-bottom:none; }
+    .bell-item:hover { background:rgba(99,102,241,.04); }
+    .bell-item.unread { background:rgba(99,102,241,.04); }
+    .bell-ico  { font-size:1rem; flex-shrink:0; margin-top:.08rem; }
+    .bell-title { font:600 .79rem 'Inter',sans-serif; margin-bottom:.12rem; }
+    .bell-body  { font-size:.72rem; color:var(--muted); line-height:1.45; }
+    .bell-time  { font-size:.65rem; color:var(--subtle); margin-top:.15rem; }
+    .bell-empty { padding:1.75rem; text-align:center; color:var(--muted); font-size:.82rem; }
+    .bell-footer { padding:.55rem 1rem; border-top:1px solid var(--border); }
+
+    /* ── PRICE CHANGE ─────────────────────────────── */
+    .price-change-bar {
+      background:rgba(245,158,11,.06); border:1.5px solid rgba(245,158,11,.2);
+      border-radius:var(--r); padding:.7rem 1rem; margin-top:.75rem;
+      display:flex; align-items:center; gap:.65rem; flex-wrap:wrap;
+    }
+    .price-change-bar label { font-size:.78rem; font-weight:600; color:var(--amber); flex-shrink:0; }
+    .price-change-bar input { flex:1; min-width:100px; padding:.4rem .7rem; font-size:.84rem; border-radius:8px; height:34px; }
+    .price-change-bar textarea { flex:2; min-width:140px; padding:.4rem .7rem; font-size:.8rem; border-radius:8px; min-height:34px; max-height:60px; resize:none; }
+
+    /* ── SIDEBAR BRAND ────────────────────────────── */
+    .sb-brand {
+      font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; text-decoration:none; display:block;
+    }
+    .mob-btn {
+      display:none; position:fixed; top:.85rem; left:.85rem; z-index:301;
+      width:38px; height:38px; border-radius:10px; background:var(--surface);
+      border:1.5px solid var(--border); box-shadow:var(--shadow);
+      align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer;
+    }
+    @media(max-width:960px){ .mob-btn{display:flex} }
+    .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:99; }
+    .sb-overlay.show { display:block; }
+
+    /* ── AVATAR ───────────────────────────────────── */
+    .av-ring {
+      width:72px; height:72px; border-radius:18px;
+      background:var(--grad); display:flex; align-items:center;
+      justify-content:center; font-size:1.8rem; font-weight:700;
+      color:#fff; overflow:hidden; box-shadow:0 4px 16px rgba(99,102,241,.3);
+      flex-shrink:0; position:relative;
+    }
+    .av-ring img { width:100%; height:100%; object-fit:cover; }
+    .av-overlay {
+      position:absolute; inset:0; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-size:.62rem; font-weight:700; opacity:0;
+      transition:opacity .18s; cursor:pointer; border-radius:18px;
+    }
+    .av-ring:hover .av-overlay { opacity:1; }
+  </style>
+</head>
+<body>
+<button class="mob-btn" onclick="toggleSB()">☰</button>
+<div class="sb-overlay" id="sb-ov" onclick="closeSB()"></div>
+
+<!-- NOTIFICATION BELL (top right) -->
+<div class="notif-bell" id="bell-wrap">
+  <div class="bell-btn" id="bell-btn" onclick="toggleBell()">
+    🔔
+    <div class="bell-count" id="bell-cnt"></div>
+  </div>
+  <div class="bell-dropdown" id="bell-dd">
+    <div class="bell-header">
+      <span>Уведомления</span>
+      <span class="bell-mark" onclick="markAllRead()">Прочитать все</span>
+    </div>
+    <div id="bell-list"><div class="bell-empty">Загрузка...</div></div>
+    <div class="bell-footer">
+      <button class="btn btn-ghost btn-sm btn-block" onclick="go('notifs');closeBell()">Все уведомления →</button>
+    </div>
+  </div>
+</div>
+
+<div class="dash-wrap">
+  <aside class="dash-sb" id="sb">
+    <div style="padding:1.1rem 1rem .1rem">
+      <a href="/" class="sb-brand">Skillmart</a>
+    </div>
+    <div class="dash-sb-user">
+      <div class="dash-sb-av" id="sb-av"></div>
+      <div><div class="dash-sb-name" id="sb-name"></div><div class="dash-sb-role" id="sb-role"></div></div>
+    </div>
+    <nav class="dash-sb-nav" id="sb-nav"></nav>
+  </aside>
+
+  <div class="dash-main">
+    <div class="dash-content" id="dc">
+      <div class="loader-wrap" style="padding:4rem 2rem"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Service modal -->
+<div class="modal-overlay" id="svc-modal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header"><h3 id="sm-title">Создать услугу</h3><button class="modal-close" onclick="closeSvcModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Название</label><input type="text" id="sf-title" placeholder="Краткое описание (мин. 10 символов)"/></div>
+      <div class="form-group"><label>Категория</label><select id="sf-cat"></select></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Цена (₽)</label><input type="number" id="sf-price" placeholder="1000" min="1"/></div>
+        <div class="form-group"><label>Срок (дней)</label><input type="number" id="sf-days" placeholder="3" min="1"/></div>
+      </div>
+      <div class="form-group"><label>Описание</label><textarea id="sf-desc" rows="5" placeholder="Подробно опишите услугу..."></textarea></div>
+      <div class="form-group"><label>Теги <span class="form-hint">через запятую</span></label><input type="text" id="sf-tags" placeholder="логотип, дизайн"/></div>
+      <div id="sf-err" class="error-msg"></div>
+      <button class="btn btn-primary btn-block btn-lg mt-2" id="sf-submit" onclick="submitSvc()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (!requireAuth()) {}
+const user = Storage.getUser();
+let editSvcId=null, cats=[], pollT=null, bellPoll=null, stars=0;
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+function buildSB() {
+  const av = document.getElementById('sb-av');
+  if (user.avatar) { av.innerHTML=`<img src="${esc(user.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`; }
+  else             { av.textContent = user.name.charAt(0).toUpperCase(); }
+  document.getElementById('sb-name').textContent = user.name;
+  document.getElementById('sb-role').textContent = user.role==='customer' ? '🛍️ Заказчик' : '🧑‍💻 Исполнитель';
+  const links = user.role==='customer'
+    ? [['orders','📦','Мои заказы'],['balance','💰','Баланс'],['notifs','🔔','Уведомления'],['profile','⚙️','Профиль']]
+    : [['services','🎯','Мои услуги'],['orders','📦','Входящие заказы'],['balance','💰','Баланс'],['notifs','🔔','Уведомления'],['profile','⚙️','Профиль']];
+  document.getElementById('sb-nav').innerHTML =
+    links.map(([id,ic,lb]) => `<button class="sb-item" id="si-${id}" onclick="go('${id}')">`+`<span class="ico">${ic}</span>${lb}</button>`).join('')
+    +`<div class="sb-sep"></div>`
+    +`<a href="/services.html" class="sb-item"><span class="ico">🔍</span>Каталог</a>`
+    +`<a href="/" class="sb-item"><span class="ico">🏠</span>Главная</a>`
+    +`<div class="sb-sep"></div>`
+    +`<button onclick="logout()" class="sb-item danger"><span class="ico">🚪</span>Выйти</button>`;
+}
+function setActive(id) { document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active')); const el=document.getElementById('si-'+id); if(el) el.classList.add('active'); }
+function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sb-ov').classList.toggle('show'); }
+function closeSB()  { document.getElementById('sb').classList.remove('open'); document.getElementById('sb-ov').classList.remove('show'); }
+
+/* ── CONTENT PANE ────────────────────────────────────────── */
+function setContent(hdr, body) {
+  document.getElementById('dc').innerHTML =
+    `<div class="dash-content-header">${hdr}</div><div class="dash-inner">${body}</div>`;
+}
+
+function go(sec, extra={}) {
+  stopPoll();
+  setActive(sec);
+  closeSB();
+  document.getElementById('dc').innerHTML = '<div class="loader-wrap" style="padding:4rem 2rem"><div class="spinner"></div></div>';
+  const map = { orders:loadOrders, services:loadServices, balance:loadBalance, notifs:loadNotifs, profile:loadProfile, chat:()=>loadChat(extra.oid) };
+  (map[sec]||loadOrders)();
+}
+
+/* ── NOTIFICATION BELL ───────────────────────────────────── */
+let bellOpen = false;
+async function refreshBell() {
+  try {
+    const res = await api('/notifications?limit=8');
+    if (!res) return;
+    const list = res.notifications||[];
+    const unread = res.unread_count||0;
+    const cnt = document.getElementById('bell-cnt');
+    if (unread > 0) { cnt.textContent=unread>9?'9+':unread; cnt.classList.add('show'); }
+    else            { cnt.classList.remove('show'); }
+
+    const bellList = document.getElementById('bell-list');
+    if (!list.length) { bellList.innerHTML='<div class="bell-empty">🔔 Нет уведомлений</div>'; return; }
+    const nIcons = { order_created:'📦', order_accepted:'🔄', order_completed:'✅', order_cancelled:'❌', new_message:'💬', new_review:'⭐', payment_received:'💰', price_changed:'💸' };
+    bellList.innerHTML = list.map(n => `
+      <div class="bell-item ${n.is_read?'':'unread'}" onclick="bellClick('${n.data?.order_id||''}')">
+        <span class="bell-ico">${nIcons[n.type]||'🔔'}</span>
+        <div>
+          <div class="bell-title">${esc(n.title)}</div>
+          ${n.body?`<div class="bell-body">${esc(n.body)}</div>`:''}
+          <div class="bell-time">${relTime(n.created_at)}</div>
+        </div>
+      </div>`).join('');
+  } catch {}
+}
+function bellClick(orderId) { closeBell(); if(orderId) go('chat',{oid:orderId}); else go('notifs'); }
+function toggleBell() { bellOpen=!bellOpen; document.getElementById('bell-dd').classList.toggle('open',bellOpen); if(bellOpen) refreshBell(); }
+function closeBell()  { bellOpen=false; document.getElementById('bell-dd').classList.remove('open'); }
+async function markAllRead() { try { await api('/notifications/read-all','PATCH'); refreshBell(); } catch {} }
+function relTime(s) {
+  const d=new Date(s), now=new Date(), diff=Math.floor((now-d)/1000);
+  if(diff<60) return 'только что';
+  if(diff<3600) return Math.floor(diff/60)+' мин назад';
+  if(diff<86400) return Math.floor(diff/3600)+' ч назад';
+  return fmtDate(s);
+}
+document.addEventListener('click', e => { if(bellOpen && !document.getElementById('bell-wrap').contains(e.target)) closeBell(); });
+
+/* ── ORDERS ──────────────────────────────────────────────── */
+async function loadOrders() {
+  try {
+    const res = await api('/orders?limit=50'); if(!res) return;
+    const data = res.data||[];
+    window._od = data;
+    const isC = user.role==='customer';
+    const stats = { total:data.length, active:data.filter(o=>['created','in_progress','review'].includes(o.status)).length, done:data.filter(o=>o.status==='completed').length };
+    setContent(
+      `<h2><span>${isC?'📦':'📋'}</span>${isC?'Мои заказы':'Входящие заказы'}</h2>`,
+      `<div class="stat-cards">
+        <div class="stat-card"><div class="stat-card-ico">📊</div><div class="stat-card-val">${stats.total}</div><div class="stat-card-lbl">Всего</div></div>
+        <div class="stat-card"><div class="stat-card-ico">⚡</div><div class="stat-card-val">${stats.active}</div><div class="stat-card-lbl">Активных</div></div>
+        <div class="stat-card"><div class="stat-card-ico">✅</div><div class="stat-card-val">${stats.done}</div><div class="stat-card-lbl">Завершённых</div></div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="fO(this,'all')">Все</button>
+        <button class="tab-btn" onclick="fO(this,'created')">Новые</button>
+        <button class="tab-btn" onclick="fO(this,'in_progress')">В работе</button>
+        <button class="tab-btn" onclick="fO(this,'review')">На проверке</button>
+        <button class="tab-btn" onclick="fO(this,'completed')">Завершённые</button>
+        <button class="tab-btn" onclick="fO(this,'cancelled')">Отменённые</button>
+      </div>
+      <div class="items-list" id="olist">${renderOList(data,'all')}</div>`
+    );
+  } catch(e) { showErr(e.message); }
+}
+function fO(btn,f) { document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('olist').innerHTML=renderOList(window._od||[],f); }
+function renderOList(data,f) {
+  const isC=user.role==='customer';
+  const list=f==='all'?data:data.filter(o=>o.status===f);
+  if(!list.length) return `<div class="empty"><div class="empty-icon">📭</div><h3>${f==='all'?'Нет заказов':'Нет заказов'}</h3>${f==='all'&&isC?'<a href="/services.html" class="btn btn-primary mt-2">Найти услугу</a>':''}</div>`;
+  return list.map(o=>`
+    <div class="order-card" onclick="go('chat',{oid:'${o.id}'})">
+      <div style="flex:1;min-width:0">
+        <div class="order-card-title">${esc(o.service_title)}</div>
+        <div class="order-card-meta">
+          <span>👤 ${esc(isC?o.executor_name:o.customer_name)}</span>
+          <span>📅 ${fmtDate(o.created_at)}</span>
+        </div>
+      </div>
+      <div class="order-card-right">
+        <div class="order-card-price">${fmtPrice(o.total_price)}</div>
+        ${fmtStatus(o.status)}
+      </div>
+    </div>`).join('');
+}
+
+/* ── CHAT ────────────────────────────────────────────────── */
+async function loadChat(oid) {
+  if (!oid) { loadOrders(); return; }
+  try {
+    const order = await api('/orders/'+oid); if(!order) return;
+    const isC  = user.role==='customer';
+    const other = isC?order.executor_name:order.customer_name;
+    const acts  = statusActions(order.status, user.role);
+
+    setContent(
+      `<div style="display:flex;align-items:center;gap:.85rem">
+        <button onclick="go('orders')" class="btn btn-ghost btn-sm">← Назад</button>
+        <h2><span>💬</span>Заказ</h2>
+      </div>`,
+      `<div class="chat-order-hdr">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;margin-bottom:.2rem">${esc(order.service_title)}</div>
+          <div style="font-size:.79rem;color:var(--muted)">👤 ${esc(other)} · <span id="cur-price" style="font-weight:700">💰 ${fmtPrice(order.total_price)}</span></div>
+          ${order.requirements?`<div style="font-size:.75rem;color:var(--muted);margin-top:.22rem">📋 ${esc(order.requirements)}</div>`:''}
+        </div>
+        <div class="chat-actions">
+          ${fmtStatus(order.status)}
+          ${acts.map(a=>`<button class="btn btn-outline btn-sm" onclick="chStatus('${oid}','${a.to}','${esc(order.service_title).replace(/'/g,"\\'")}')">  ${a.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- Price change panel (only in active orders) -->
+      ${!['completed','cancelled'].includes(order.status) ? `
+      <div class="price-change-bar">
+        <label>💸 Изменить цену:</label>
+        <input type="number" id="new-price" placeholder="${parseFloat(order.total_price).toFixed(0)}" min="1" style="max-width:120px"/>
+        <textarea id="price-note" placeholder="Комментарий (необязательно)" rows="1"></textarea>
+        <button class="btn btn-outline btn-sm" onclick="changePrice('${oid}')">Применить</button>
+      </div>` : ''}
+
+      <div class="chat-wrap">
+        <div class="chat-messages" id="msgs"><div class="loader-wrap"><div class="spinner"></div></div></div>
+        ${['completed','cancelled'].includes(order.status)?'':
+        `<div class="chat-input-wrap">
+          <textarea id="ci" placeholder="Сообщение..." rows="1" onkeydown="chatKey(event,'${oid}')"></textarea>
+          <button class="chat-send" onclick="send('${oid}')">➤</button>
+        </div>`}
+      </div>
+      <div id="rev-area"></div>`
+    );
+    fetchMsgs(oid);
+    pollT = setInterval(()=>fetchMsgs(oid,true), 3000);
+    if (isC && order.status==='completed') checkReview(oid, order.service_id);
+  } catch(e) { showErr(e.message, true); }
+}
+
+function statusActions(st, role) {
+  const m = {
+    customer:{ in_progress:[{to:'review',label:'✓ Принять работу'}], review:[{to:'completed',label:'✅ Завершить и оплатить'}] },
+    executor:{ created:[{to:'in_progress',label:'▶ Взять в работу'},{to:'cancelled',label:'✕ Отклонить'}], in_progress:[{to:'review',label:'📤 На проверку'}] }
+  };
+  return m[role]?.[st]||[];
+}
+
+async function fetchMsgs(oid, quiet=false) {
+  try {
+    const data=await api('/messages/'+oid); if(!data) return;
+    const wrap=document.getElementById('msgs'); if(!wrap) return;
+    const atBot=wrap.scrollHeight-wrap.scrollTop-wrap.clientHeight<80;
+    wrap.innerHTML = data.length
+      ? data.map(m=>{
+          const mine=m.sender_id===user.id;
+          const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+          // Price change messages get special styling
+          const isPrice = m.message.startsWith('💰') || m.message.startsWith('💸');
+          return `<div class="chat-msg ${mine?'mine':'theirs'}" ${isPrice?'style="align-self:center;max-width:90%"':''}>
+            ${!mine&&!isPrice?`<div class="chat-sender">${esc(m.sender_name)}</div>`:''}
+            <div class="chat-bubble" ${isPrice?'style="background:rgba(245,158,11,.1);color:var(--text);border-color:rgba(245,158,11,.2);text-align:center"':''}>${esc(m.message)}</div>
+            <div class="chat-time">${t}</div>
+          </div>`;
+        }).join('')
+      : `<div style="text-align:center;color:var(--muted);font-size:.82rem;padding:2rem">Начните общение!</div>`;
+    if(atBot||!quiet) wrap.scrollTop=wrap.scrollHeight;
+  } catch {}
+}
+function chatKey(e,oid){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(oid);} }
+async function send(oid){
+  const inp=document.getElementById('ci'); if(!inp) return;
+  const msg=inp.value.trim(); if(!msg) return;
+  inp.value='';
+  try { await api('/messages/'+oid,'POST',{message:msg}); fetchMsgs(oid); }
+  catch(e){ toastErr(e.message); inp.value=msg; }
+}
+async function chStatus(oid,st,title){
+  const lbs={in_progress:'взять в работу',review:'отправить на проверку',completed:'завершить и оплатить',cancelled:'отменить'};
+  if(!confirm(`${lbs[st]||st} заказ "${title}"?`)) return;
+  try { await api('/orders/'+oid+'/status','PATCH',{status:st}); toastOk('Статус обновлён'); loadChat(oid); refreshBell(); }
+  catch(e){ toastErr(e.message); }
+}
+
+async function changePrice(oid){
+  const v=parseFloat(document.getElementById('new-price')?.value);
+  const note=document.getElementById('price-note')?.value.trim();
+  if(!v||v<1){ toastErr('Укажите корректную цену'); return; }
+  try {
+    const res = await api('/orders/'+oid+'/price','PATCH',{price:v, note:note||undefined});
+    toastOk('Цена изменена!');
+    // Update displayed price
+    const el=document.getElementById('cur-price');
+    if(el) el.textContent='💰 '+fmtPrice(v);
+    document.getElementById('new-price').value='';
+    document.getElementById('price-note').value='';
+    fetchMsgs(oid);
+  } catch(e){ toastErr(e.message); }
+}
+
+function stopPoll(){ if(pollT){clearInterval(pollT);pollT=null;} }
+
+async function checkReview(oid,svcId){
+  try {
+    const revs=await api('/reviews?service_id='+svcId);
+    const area=document.getElementById('rev-area'); if(!area) return;
+    const mine=revs?.find(r=>r.customer_id===user.id);
+    if(mine){
+      area.innerHTML=`<div class="form-box mt-2"><div style="display:flex;align-items:center;gap:.6rem"><span style="font-size:1.25rem">✅</span><div><div style="font-weight:600;font-size:.88rem">Ваш отзыв опубликован</div><div>${fmtStars(mine.rating)} ${mine.comment?`<span style="font-size:.8rem;color:var(--muted)">${esc(mine.comment)}</span>`:''}</div></div></div></div>`;
+    } else {
+      stars=0;
+      area.innerHTML=`<div class="form-box mt-2"><h3>Оставьте отзыв</h3><div class="star-row" id="srow">${[1,2,3,4,5].map(i=>`<button class="star-b" onclick="setStar(${i})">★</button>`).join('')}</div><div class="form-group"><textarea id="rtext" rows="3" placeholder="Расскажите об опыте работы..."></textarea></div><button class="btn btn-primary" onclick="sendReview('${oid}')">Опубликовать</button></div>`;
+    }
+  } catch {}
+}
+function setStar(n){ stars=n; document.querySelectorAll('.star-b').forEach((b,i)=>b.classList.toggle('lit',i<n)); }
+async function sendReview(oid){
+  if(!stars){toastErr('Выберите оценку');return;}
+  try{ const c=document.getElementById('rtext')?.value.trim(); await api('/reviews','POST',{order_id:oid,rating:stars,comment:c||undefined}); toastOk('Отзыв опубликован!'); checkReview(oid); }
+  catch(e){toastErr(e.message);}
+}
+
+/* ── SERVICES ────────────────────────────────────────────── */
+async function loadServices(){
+  try{
+    const res=await api('/services?limit=100'); if(!res) return;
+    const mine=(res.data||[]).filter(s=>s.executor_id===user.id);
+    setContent(
+      `<h2><span>🎯</span>Мои услуги</h2><button class="btn btn-primary btn-sm" onclick="openSvcModal()">+ Создать</button>`,
+      mine.length?`<div class="svc-m-grid">${mine.map(s=>`
+        <div class="svc-m">
+          <div class="svc-m-img">${catIcons[s.category_slug]||'📦'}</div>
+          <div class="svc-m-body">
+            <div class="svc-m-title">${esc(s.title)}</div>
+            <div class="svc-m-row">
+              <span style="font-size:.72rem;color:var(--muted)"><span class="${s.is_active!==false?'dot-active':'dot-inactive'}"></span>${s.is_active!==false?'Активна':'Неактивна'}</span>
+              <div class="svc-m-price">${fmtPrice(s.price)}</div>
+            </div>
+            <div style="font-size:.7rem;color:var(--subtle);margin-bottom:.65rem">⭐${parseFloat(s.rating||0).toFixed(1)} · 💬${s.reviews_count} · 📦${s.orders_count}</div>
+            <div class="svc-m-actions">
+              <a href="/service.html?id=${s.id}" class="btn btn-outline btn-sm">👁</a>
+              <button class="btn btn-outline btn-sm" onclick="openSvcModal('${s.id}')">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="delSvc('${s.id}','${esc(s.title).replace(/'/g,"\\'")}')">🗑</button>
+            </div>
+          </div>
+        </div>`).join('')}</div>`
+      :`<div class="empty"><div class="empty-icon">🎯</div><h3>Нет услуг</h3><p>Создайте первую услугу</p><button class="btn btn-primary mt-2" onclick="openSvcModal()">Создать</button></div>`
+    );
+  } catch(e){showErr(e.message);}
+}
+async function openSvcModal(id=null){
+  editSvcId=id; document.getElementById('sm-title').textContent=id?'Редактировать':'Создать услугу';
+  document.getElementById('sf-err').classList.remove('show');
+  if(!cats.length){ try{ cats=await api('/categories')||[]; }catch{} }
+  const csel=document.getElementById('sf-cat');
+  csel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
+  if(id){ try{ const s=await api('/services/'+id); document.getElementById('sf-title').value=s.title; document.getElementById('sf-price').value=s.price; document.getElementById('sf-days').value=s.deadline; document.getElementById('sf-desc').value=s.description; document.getElementById('sf-tags').value=(s.tags||[]).join(', '); csel.value=s.category_id; }catch(e){toastErr('Не загрузить');return;} }
+  else { ['sf-title','sf-price','sf-days','sf-desc','sf-tags'].forEach(i=>{document.getElementById(i).value='';}); }
+  document.getElementById('svc-modal').classList.add('open');
+}
+function closeSvcModal(){ document.getElementById('svc-modal').classList.remove('open'); }
+document.getElementById('svc-modal').addEventListener('click',e=>{ if(e.target.id==='svc-modal') closeSvcModal(); });
+async function submitSvc(){
+  const title=document.getElementById('sf-title').value.trim(),desc=document.getElementById('sf-desc').value.trim(),price=parseFloat(document.getElementById('sf-price').value),days=parseInt(document.getElementById('sf-days').value),catId=parseInt(document.getElementById('sf-cat').value),tags=document.getElementById('sf-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const errEl=document.getElementById('sf-err'); errEl.classList.remove('show');
+  if(!title||title.length<10){errEl.textContent='Название: мин. 10 символов';errEl.classList.add('show');return;}
+  if(!desc||desc.length<30){errEl.textContent='Описание: мин. 30 символов';errEl.classList.add('show');return;}
+  if(!price||price<1){errEl.textContent='Укажите цену';errEl.classList.add('show');return;}
+  if(!days||days<1){errEl.textContent='Укажите срок';errEl.classList.add('show');return;}
+  const btn=document.getElementById('sf-submit'); btn.disabled=true; btn.textContent='Сохраняем...';
+  try{ const body={title,description:desc,price,deadline:days,category_id:catId,tags}; editSvcId?await api('/services/'+editSvcId,'PUT',body):await api('/services','POST',body); toastOk(editSvcId?'Обновлено!':'Услуга создана!'); closeSvcModal(); loadServices(); }
+  catch(e){ errEl.textContent=e.message||'Ошибка'; errEl.classList.add('show'); }
+  finally{ btn.disabled=false; btn.textContent='Сохранить'; }
+}
+async function delSvc(id,title){ if(!confirm(`Удалить "${title}"?`)) return; try{ await api('/services/'+id,'DELETE'); toastOk('Удалено'); loadServices(); }catch(e){toastErr(e.message);} }
+
+/* ── BALANCE ─────────────────────────────────────────────── */
+async function loadBalance(){
+  try{
+    const res=await api('/balance'); if(!res) return;
+    const {balance,transactions}=res;
+    setContent(`<h2><span>💰</span>Баланс</h2>`,
+      `<div class="balance-hero">
+        <div class="balance-lbl">Текущий баланс</div>
+        <div class="balance-amt">${fmtPrice(balance?.amount||0)}</div>
+        <div style="font-size:.72rem;opacity:.65;margin-top:.2rem">Виртуальный счёт Skillmart</div>
+      </div>
+      <div class="form-box mb-2">
+        <h3>Пополнить баланс</h3>
+        <div style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:150px;margin-bottom:0"><label>Сумма (₽)</label><input type="number" id="dep" placeholder="500" min="100"/></div>
+          <button class="btn btn-primary" onclick="doDeposit()">Пополнить</button>
+        </div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.7rem">
+          ${[500,1000,2000,5000].map(a=>`<button class="btn btn-outline btn-sm" onclick="document.getElementById('dep').value=${a}">${fmtPrice(a)}</button>`).join('')}
+        </div>
+      </div>
+      <div class="form-box">
+        <h3>История операций</h3>
+        ${transactions?.length
+          ?transactions.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)">
+              <div><div style="font-weight:500;font-size:.86rem">${esc(t.description||t.type)}</div><div style="font-size:.7rem;color:var(--muted)">${fmtDate(t.created_at)}</div></div>
+              <div style="font-weight:600;color:${t.type==='deposit'?'var(--green)':'var(--red)'}">
+                ${t.type==='deposit'?'+':'−'}${fmtPrice(t.amount)}
+              </div></div>`).join('')
+          :`<div class="empty" style="padding:1.5rem 0"><div class="empty-icon">💳</div><h3>Нет операций</h3></div>`}
+      </div>`);
+  }catch(e){showErr(e.message);}
+}
+async function doDeposit(){ const v=parseFloat(document.getElementById('dep').value); if(!v||v<100){toastErr('Мин. 100 ₽');return;} try{ await api('/balance/deposit','POST',{amount:v}); toastOk('Пополнено на '+fmtPrice(v)); loadBalance(); }catch(e){toastErr(e.message);} }
+
+/* ── NOTIFICATIONS ───────────────────────────────────────── */
+async function loadNotifs(){
+  try{
+    const res=await api('/notifications'); if(!res) return;
+    const {notifications:list=[],unread_count=0}=res;
+    setContent(
+      `<h2><span>🔔</span>Уведомления ${unread_count>0?`<span class="badge badge-red" style="font-size:.65rem">${unread_count}</span>`:''}</h2>
+       ${unread_count>0?`<button class="btn btn-outline btn-sm" onclick="markAllRead()">Прочитать все</button>`:''}`,
+      `<div class="items-list">${list.length?list.map(n=>`
+        <div class="notif-item ${n.is_read?'':'unread'}" onclick="${n.data?.order_id?`go('chat',{oid:'${n.data.order_id}'})`:''}">
+          <div class="notif-ico">${nIco(n.type)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="notif-title">${esc(n.title)}</div>
+            ${n.body?`<div class="notif-body">${esc(n.body)}</div>`:''}
+            <div class="notif-date">${relTime(n.created_at)}</div>
+          </div>
+          ${n.data?.order_id?`<button class="btn btn-outline btn-sm">Открыть →</button>`:''}
+        </div>`).join(''):`<div class="empty"><div class="empty-icon">🔔</div><h3>Нет уведомлений</h3></div>`}</div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+function nIco(t){const m={order_created:'📦',order_accepted:'🔄',order_completed:'✅',order_cancelled:'❌',new_message:'💬',new_review:'⭐',payment_received:'💰',price_changed:'💸'};return m[t]||'🔔';}
+async function markAllRead(){try{await api('/notifications/read-all','PATCH');toastOk('Готово');loadNotifs();refreshBell();}catch(e){toastErr(e.message);}}
+
+/* ── PROFILE ─────────────────────────────────────────────── */
+async function loadProfile(){
+  try{
+    const res=await api('/users/me/full'); if(!res) return;
+    const ep=res.profile||{}, stats=res.stats||{}, isExec=user.role==='executor';
+    const avHtml=res.avatar?`<img src="${esc(res.avatar)}" style="width:100%;height:100%;object-fit:cover"/>`:esc(res.name.charAt(0).toUpperCase());
+    const lvl=levelInfo(stats.completed_orders||0);
+    const sc=ep.socials||{};
+    const skillsVal=(ep.skills||[]).map(s=>`${s.name}:${s.level}`).join('\n');
+    const portVal=(ep.portfolio||[]).map(p=>`${p.title}|${p.url}|${p.description||''}`).join('\n');
+    const langsVal=(ep.languages||[]).join(', ');
+
+    const heroHtml=isExec?`<div class="exec-dash-hero">
+      <div class="exec-hero-left">
+        <div class="exec-hero-av" style="overflow:hidden">${avHtml}</div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.15rem;font-weight:800;color:#fff">${esc(res.name)}</div>
+          <div style="font-size:.79rem;color:rgba(255,255,255,.7);margin:.12rem 0">${ep.specialization||'Исполнитель на Skillmart'}</div>
+          <span class="lvl-hero-badge">${lvl.ico} ${lvl.lbl}</span>
+        </div>
+      </div>
+      <div class="exec-hero-stats">
+        <div class="ehs"><div class="ehs-n">${stats.completed_orders||0}</div><div class="ehs-l">заказов</div></div>
+        <div class="ehs"><div class="ehs-n">${parseFloat(stats.avg_rating||0).toFixed(1)}</div><div class="ehs-l">рейтинг</div></div>
+        <div class="ehs"><div class="ehs-n">${stats.reviews_count||0}</div><div class="ehs-l">отзывов</div></div>
+        <div class="ehs"><div class="ehs-n">${stats.services_count||0}</div><div class="ehs-l">услуг</div></div>
+      </div>
+    </div>`:'';
+
+    setContent(`<h2><span>⚙️</span>Профиль</h2>`, heroHtml+`
+      <!-- BASIC -->
+      <div class="form-box mb-2">
+        <h3>Аватар и данные</h3>
+        <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.25rem;flex-wrap:wrap">
+          <div class="av-ring" onclick="document.getElementById('av-inp').click()" title="Изменить фото">
+            <div id="av-preview">${avHtml}</div>
+            <div class="av-overlay">📷 Изменить</div>
+          </div>
+          <div><div style="font-weight:600;font-size:.88rem;margin-bottom:.18rem">${esc(res.name)}</div>
+            <div style="font-size:.75rem;color:var(--muted)">${esc(res.email)}</div>
+            <button class="btn btn-outline btn-sm mt-1" onclick="document.getElementById('av-inp').click()">Загрузить фото</button>
+          </div>
+          <input type="file" id="av-inp" accept="image/*" style="display:none" onchange="onAvatar(event)"/>
+        </div>
+        <div class="form-group"><label>Имя</label><input type="text" id="p-name" value="${esc(res.name||'')}"/></div>
+        <div class="form-group"><label>О себе</label><textarea id="p-bio" rows="3" placeholder="Расскажите о себе...">${esc(res.bio||'')}</textarea></div>
+        <div class="form-group"><label>Email</label><input type="email" value="${esc(res.email)}" disabled/></div>
+        <button class="btn btn-primary" onclick="saveProfile()">Сохранить данные</button>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="form-box mb-2">
+        <h3>Смена пароля</h3>
+        <div class="form-group"><label>Текущий пароль</label><input type="password" id="p-old" placeholder="••••••••"/></div>
+        <div class="form-group"><label>Новый пароль <span class="form-hint">мин. 6 символов</span></label><input type="password" id="p-new" placeholder="••••••••"/></div>
+        <button class="btn btn-outline" onclick="changePass()">Изменить пароль</button>
+      </div>
+
+      <!-- SOCIALS (both roles) -->
+      <div class="form-box mb-2">
+        <h3>🔗 Социальные сети</h3>
+        <div class="grid-2">
+          <div class="form-group"><label>Telegram</label><input type="text" id="sc-telegram" value="${esc(sc.telegram||'')}" placeholder="@username или ссылка"/></div>
+          <div class="form-group"><label>Персональный сайт</label><input type="url" id="sc-website" value="${esc(sc.website||'')}" placeholder="https://..."/></div>
+          <div class="form-group"><label>LinkedIn</label><input type="url" id="sc-linkedin" value="${esc(sc.linkedin||'')}" placeholder="https://linkedin.com/in/..."/></div>
+          ${isExec?`
+          <div class="form-group"><label>GitHub</label><input type="url" id="sc-github" value="${esc(sc.github||'')}" placeholder="https://github.com/..."/></div>
+          <div class="form-group"><label>Behance</label><input type="url" id="sc-behance" value="${esc(sc.behance||'')}" placeholder="https://behance.net/..."/></div>
+          <div class="form-group"><label>Dribbble</label><input type="url" id="sc-dribbble" value="${esc(sc.dribbble||'')}" placeholder="https://dribbble.com/..."/></div>
+          `:''}
+        </div>
+        <button class="btn btn-primary" onclick="saveFull()">Сохранить соцсети</button>
+      </div>
+
+      ${isExec?`
+      <!-- EXECUTOR STATUS -->
+      <div class="form-box mb-2">
+        <h3>🎯 Статус исполнителя</h3>
+        <div class="grid-2">
+          <div class="form-group"><label>Доступность</label><select id="ep-avail">
+            <option value="available" ${ep.availability==='available'?'selected':''}>🟢 Доступен</option>
+            <option value="busy"      ${ep.availability==='busy'?'selected':''}>🟡 Занят</option>
+            <option value="vacation"  ${ep.availability==='vacation'?'selected':''}>⛔ В отпуске</option>
+          </select></div>
+          <div class="form-group"><label>Время ответа</label><select id="ep-resp">
+            <option value="< 1 часа"   ${ep.response_time==='< 1 часа'?'selected':''}>⚡ До 1 часа</option>
+            <option value="< 4 часов"  ${ep.response_time==='< 4 часов'?'selected':''}>🕐 До 4 часов</option>
+            <option value="< 24 часов" ${ep.response_time==='< 24 часов'||!ep.response_time?'selected':''}>📅 До 24 часов</option>
+            <option value="< 3 дней"   ${ep.response_time==='< 3 дней'?'selected':''}>📆 До 3 дней</option>
+          </select></div>
+          <div class="form-group"><label>Специализация</label><input type="text" id="ep-spec" value="${esc(ep.specialization||'')}" placeholder="UI/UX дизайнер..."/></div>
+          <div class="form-group"><label>Ставка ₽/час <span class="form-hint">необязательно</span></label><input type="number" id="ep-rate" value="${ep.hourly_rate||''}" placeholder="1500" min="0"/></div>
+        </div>
+        <div class="form-group"><label>Языки <span class="form-hint">через запятую</span></label><input type="text" id="ep-langs" value="${esc(langsVal)}" placeholder="Русский, English..."/></div>
+        <button class="btn btn-primary" onclick="saveFull()">Сохранить статус</button>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="form-box mb-2">
+        <h3>🛠 Навыки</h3>
+        <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый навык на новой строке: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Figma:5</code> (уровень 1–5)</p>
+        <textarea id="ep-skills" rows="6" placeholder="Figma:5&#10;Photoshop:4&#10;HTML/CSS:4&#10;React:3">${esc(skillsVal)}</textarea>
+        <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить навыки</button>
+      </div>
+
+      <!-- PORTFOLIO -->
+      <div class="form-box">
+        <h3>🎨 Портфолио</h3>
+        <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый проект: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Название|URL|Описание</code></p>
+        <textarea id="ep-port" rows="5" placeholder="Сайт для кафе|https://behance.net/...|Редизайн">${esc(portVal)}</textarea>
+        <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить портфолио</button>
+      </div>`:''}
+    `);
+  }catch(e){showErr(e.message);}
+}
+
+function levelInfo(n){const c=+n||0;if(c>=100)return{ico:'💎',lbl:'Мастер'};if(c>=30)return{ico:'🔥',lbl:'Эксперт'};if(c>=10)return{ico:'⭐',lbl:'Профи'};return{ico:'🌱',lbl:'Новичок'};}
+
+function onAvatar(event){
+  const file=event.target.files[0]; if(!file) return;
+  if(file.size>3*1024*1024){toastErr('Файл слишком большой (макс. 3 МБ)');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const b64=e.target.result;
+    document.getElementById('av-preview').innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover"/>`;
+    // update sidebar too
+    const sbAv=document.getElementById('sb-av');
+    sbAv.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;
+    window._av=b64;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveProfile(){
+  const name=document.getElementById('p-name')?.value.trim();
+  const bio=document.getElementById('p-bio')?.value||'';
+  if(!name){toastErr('Введите имя');return;}
+  try{
+    const body={name, bio};
+    if(window._av) body.avatar=window._av;
+    const u=await api('/users/me','PUT',body);
+    if(u){Storage.setUser({...Storage.getUser(),name:u.name,avatar:u.avatar});document.getElementById('sb-name').textContent=u.name;window._av=null;}
+    toastOk('Данные сохранены!');
+  }catch(e){toastErr(e.message);}
+}
+
+async function saveFull(){
+  const name=document.getElementById('p-name')?.value.trim();
+  const bio=document.getElementById('p-bio')?.value||'';
+  const isExec=user.role==='executor';
+  const sc={};
+  ['telegram','website','linkedin','github','behance','dribbble'].forEach(k=>{const el=document.getElementById('sc-'+k);if(el?.value.trim()) sc[k]=el.value.trim();});
+  const body={name:name||undefined, bio, socials:sc};
+  if(window._av) body.avatar=window._av;
+
+  if(isExec){
+    body.availability=document.getElementById('ep-avail')?.value;
+    body.response_time=document.getElementById('ep-resp')?.value;
+    body.specialization=document.getElementById('ep-spec')?.value.trim()||null;
+    body.hourly_rate=parseFloat(document.getElementById('ep-rate')?.value)||null;
+    const langsRaw=document.getElementById('ep-langs')?.value||'';
+    body.languages=langsRaw?langsRaw.split(',').map(l=>l.trim()).filter(Boolean):[];
+    const skillsRaw=document.getElementById('ep-skills')?.value||'';
+    body.skills=skillsRaw?skillsRaw.split('\n').filter(l=>l.trim()).map(l=>{const[nm,lv]=l.split(':');return nm?.trim()?{name:nm.trim(),level:Math.min(5,Math.max(1,+lv||3))}:null}).filter(Boolean):[];
+    const portRaw=document.getElementById('ep-port')?.value||'';
+    body.portfolio=portRaw?portRaw.split('\n').filter(l=>l.trim()).map(l=>{const p=l.split('|');return p[0]?.trim()&&p[1]?.trim()?{title:p[0].trim(),url:p[1].trim(),description:p[2]?.trim()||''}:null}).filter(Boolean):[];
+  }
+  try{
+    const u=await api('/users/me','PUT',body);
+    if(u){Storage.setUser({...Storage.getUser(),name:u.name,avatar:u.avatar});document.getElementById('sb-name').textContent=u.name;window._av=null;}
+    toastOk('Профиль обновлён!');
+  }catch(e){toastErr(e.message);}
+}
+
+async function changePass(){
+  const op=document.getElementById('p-old')?.value,np=document.getElementById('p-new')?.value;
+  if(!op||!np){toastErr('Заполните оба поля');return;} if(np.length<6){toastErr('Мин. 6 символов');return;}
+  try{await api('/auth/change-password','POST',{old_password:op,new_password:np});toastOk('Пароль изменён');document.getElementById('p-old').value='';document.getElementById('p-new').value='';}
+  catch(e){toastErr(e.message);}
+}
+
+/* ── HELPERS ─────────────────────────────────────────────── */
+function showErr(msg,back=false){
+  document.getElementById('dc').innerHTML=
+    `<div class="dash-content-header"><h2><span>⚠️</span>Ошибка</h2>${back?`<button class="btn btn-ghost btn-sm" onclick="go('orders')">← Назад</button>`:''}</div>`+
+    `<div class="dash-inner"><div class="empty"><div class="empty-icon">⚠️</div><h3>Не удалось загрузить</h3><p>${esc(msg||'Попробуйте позже')}</p></div></div>`;
+}
+
+/* ── INIT ────────────────────────────────────────────────── */
+buildSB();
+refreshBell();
+bellPoll = setInterval(refreshBell, 12000); // refresh bell every 12s
+const chatParam=qp('chat');
+if(chatParam) go('chat',{oid:chatParam});
+else go(user.role==='customer'?'orders':'services');
+</script>
+</body>
+</html>

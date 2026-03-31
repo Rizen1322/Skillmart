@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Каталог услуг — Skillmart</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    body { background: var(--bg); }
+    .page-header {
+      background: var(--surface); border-bottom: 1.5px solid var(--border);
+      padding: 1.4rem 2rem 1.2rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .page-header-left { display: flex; align-items: center; gap: 1.1rem; }
+    .back-logo { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:800; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .page-header h1 { font-family:'Bricolage Grotesque',sans-serif; font-size:1.35rem; font-weight:800; }
+    .page-header-sep { width:1px; height:22px; background:var(--border2); }
+    .page-header-right { display:flex; align-items:center; gap:.5rem; }
+    .catalog-wrap { padding: 1.5rem 2rem 3rem; max-width: 1300px; margin: 0 auto; }
+    @media(max-width:600px) { .catalog-wrap { padding: 1rem; } .page-header { padding: 1rem; } }
+  </style>
+</head>
+<body>
+<!-- Compact header, no full nav -->
+<div class="page-header">
+  <div class="page-header-left">
+    <a href="/" class="back-logo">Skillmart</a>
+    <div class="page-header-sep"></div>
+    <h1>Каталог услуг</h1>
+  </div>
+  <div class="page-header-right" id="nav-actions">
+    <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
+    <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Регистрация</a>
+  </div>
+</div>
+
+<div class="catalog-wrap">
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="q" placeholder="Поиск по названию или описанию..."/>
+  </div>
+  <div class="chip-row" id="chips"></div>
+
+  <div class="catalog-layout">
+    <!-- Filter sidebar -->
+    <div class="filter-panel">
+      <h3>Фильтры</h3>
+      <div class="filter-group">
+        <label>Категория</label>
+        <select id="fc"><option value="">Все</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Цена (₽)</label>
+        <div class="price-row">
+          <input type="number" id="fmin" placeholder="От" min="0"/>
+          <span>—</span>
+          <input type="number" id="fmax" placeholder="До" min="0"/>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Сортировка</label>
+        <select id="fsort">
+          <option value="newest">Новые</option>
+          <option value="rating">Рейтинг</option>
+          <option value="price_asc">Цена ↑</option>
+          <option value="price_desc">Цена ↓</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-bottom:.4rem" onclick="load(1)">Применить</button>
+      <button class="btn btn-ghost btn-block" onclick="resetF()">Сбросить</button>
+    </div>
+
+    <!-- Results -->
+    <div class="catalog-main">
+      <div class="results-bar">
+        <span class="results-count" id="cnt">Загрузка...</span>
+      </div>
+      <div class="svc-grid" id="grid">
+        <div class="loader-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>
+      </div>
+      <div class="pagination" id="pages"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let cats = [];
+
+function svcCard(s) {
+  return `<a href="/service.html?id=${s.id}" class="svc-card">
+    <div class="svc-card-bar"></div>
+    <div class="svc-card-top">
+      <span class="svc-cat-pill">${esc(s.category_icon||'')} ${esc(s.category_name)}</span>
+      <div class="svc-card-icon-wrap">${catIcons[s.category_slug]||'📦'}</div>
+    </div>
+    <div class="svc-card-body">
+      <div class="svc-card-title">${esc(s.title)}</div>
+      <div class="svc-author">
+        <div class="svc-author-av">${esc(s.executor_name.charAt(0))}</div>
+        <span class="svc-author-name">${esc(s.executor_name)}</span>
+      </div>
+      <div class="svc-stats">
+        <div class="svc-stat">${fmtStars(s.rating)} <span>${parseFloat(s.rating||0).toFixed(1)}</span></div>
+        <div class="svc-stat">💬 <span>${s.reviews_count}</span></div>
+        <div class="svc-stat">📦 <span>${s.orders_count}</span></div>
+      </div>
+    </div>
+    <div class="svc-card-foot">
+      <div class="svc-deadline">⏱ ${s.deadline} дн.</div>
+      <div class="svc-price">от ${fmtPrice(s.price)}</div>
+    </div>
+  </a>`;
+}
+
+async function initCats() {
+  try {
+    cats = await api('/categories') || [];
+    const sel = document.getElementById('fc');
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.slug; o.textContent = c.icon + ' ' + c.name;
+      sel.appendChild(o);
+    });
+    const cp = qp('category');
+    if (cp) sel.value = cp;
+  } catch(e) { console.error(e); }
+}
+
+async function load(page = 1) {
+  const grid = document.getElementById('grid');
+  showLoader(grid);
+
+  const q    = document.getElementById('q').value.trim();
+  const cat  = document.getElementById('fc').value;
+  const fmin = document.getElementById('fmin').value;
+  const fmax = document.getElementById('fmax').value;
+  const sort = document.getElementById('fsort').value;
+
+  // Build URL manually to ensure query params are properly passed
+  let url = '/services?page=' + page + '&limit=12&sort=' + encodeURIComponent(sort);
+  if (q)    url += '&search='    + encodeURIComponent(q);
+  if (cat)  url += '&category='  + encodeURIComponent(cat);
+  if (fmin) url += '&min_price=' + encodeURIComponent(fmin);
+  if (fmax) url += '&max_price=' + encodeURIComponent(fmax);
+
+  renderChips(q, cat, fmin, fmax);
+
+  try {
+    const res = await api(url);
+    if (!res) return;
+    const { data, pagination } = res;
+    document.getElementById('cnt').textContent = 'Найдено: ' + pagination.total + ' услуг';
+
+    if (!data || !data.length) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;display:flex;justify-content:center">
+          <div class="empty">
+            <div class="empty-icon">🔍</div>
+            <h3>Ничего не найдено</h3>
+            <p>Попробуйте другие ключевые слова или сбросьте фильтры</p>
+            <button class="btn btn-outline mt-2" onclick="resetF()">Сбросить фильтры</button>
+          </div>
+        </div>`;
+    } else {
+      grid.innerHTML = data.map(svcCard).join('');
+    }
+    renderPages(pagination, page);
+  } catch(e) {
+    grid.innerHTML = `<div style="grid-column:1/-1"><div class="empty"><div class="empty-icon">⚠️</div><h3>Ошибка загрузки</h3><p>${esc(e.message)}</p></div></div>`;
+  }
+}
+
+function renderChips(q, cat, fmin, fmax) {
+  const wrap = document.getElementById('chips');
+  const items = [];
+  const catObj = cats.find(c => c.slug === cat);
+  if (q)      items.push({ text:'🔍 '+q,      clear:() => { document.getElementById('q').value=''; load(1); } });
+  if (catObj) items.push({ text:catObj.icon+' '+catObj.name, clear:() => { document.getElementById('fc').value=''; load(1); } });
+  if (fmin)   items.push({ text:'от '+fmtPrice(fmin), clear:() => { document.getElementById('fmin').value=''; load(1); } });
+  if (fmax)   items.push({ text:'до '+fmtPrice(fmax), clear:() => { document.getElementById('fmax').value=''; load(1); } });
+  wrap.innerHTML = items.map((it,i) =>
+    `<div class="chip">${esc(it.text)}<button onclick="_c${i}()" title="Убрать">×</button></div>`
+  ).join('');
+  items.forEach((it,i) => { window['_c'+i] = it.clear; });
+}
+
+function renderPages({ pages, page: cur }) {
+  const wrap = document.getElementById('pages');
+  if (!pages || pages <= 1) { wrap.innerHTML = ''; return; }
+  let h = `<button class="page-btn" onclick="load(${cur-1})" ${cur<=1?'disabled':''}>‹</button>`;
+  for (let i=1; i<=pages; i++) {
+    if (i===1||i===pages||Math.abs(i-cur)<=2)
+      h += `<button class="page-btn ${i===cur?'active':''}" onclick="load(${i})">${i}</button>`;
+    else if (Math.abs(i-cur)===3)
+      h += `<span style="color:var(--muted);align-self:center;padding:0 .2rem">…</span>`;
+  }
+  h += `<button class="page-btn" onclick="load(${cur+1})" ${cur>=pages?'disabled':''}>›</button>`;
+  wrap.innerHTML = h;
+}
+
+function resetF() {
+  ['q','fc','fmin','fmax'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('fsort').value = 'newest';
+  load(1);
+}
+
+// Update nav
+if (Storage.user) {
+  document.getElementById('nav-actions').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+}
+
+document.getElementById('q').addEventListener('input', debounce(() => load(1), 450));
+document.getElementById('fsort').addEventListener('change', () => load(1));
+
+initCats().then(() => load(1));
+</script>
+</body>
+</html>
