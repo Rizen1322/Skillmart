@@ -10,34 +10,31 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── CORS ────────────────────────────────────────────────────
-const ALLOWED = [
-  'https://2-nu-eight.vercel.app',
-  'http://localhost:8080',
-  'http://localhost:3000',
-  'http://localhost:5500',
-  'https://skillmart-production-eb9d.up.railway.app',
-];
+app.use((req, res, next) => {
+  const ALLOWED = [
+    'https://2-nu-eight.vercel.app',
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'https://skillmart-production-eb9d.up.railway.app',
+  ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin (curl, Postman, мобильные приложения)
-    if (!origin || ALLOWED.includes(origin)) {
-      return callback(null, true);
-    }
-    console.log('Blocked by CORS:', origin);
-    return callback(null, false); // ⚠️ не ошибка, просто нет header
-  },
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-};
+  const origin = req.headers.origin;
+  if (ALLOWED.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
 
-// подключаем CORS
-app.use(cors(corsOptions));
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
-// ОБЯЗАТЕЛЬНО обработка OPTIONS preflight
-app.options('*', cors(corsOptions));
+  if (req.method === 'OPTIONS') {
+    // preflight запрос — сразу отвечаем 200
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 // ── MIDDLEWARE ───────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
