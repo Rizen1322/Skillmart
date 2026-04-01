@@ -32,7 +32,7 @@ function buildConfig() {
 }
 
 async function main() {
-  const schemaPath = path.join(__dirname, '../../schema.sql');
+  const schemaPath = path.join(__dirname, '../schema.sql');
   if (!fs.existsSync(schemaPath)) {
     console.error('❌ schema.sql not found at', schemaPath);
     process.exit(1);
