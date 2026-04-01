@@ -15,7 +15,8 @@ const ALLOWED = [
   '2-nu-eight.vercel.app',
   'http://localhost:8080',
   'http://localhost:3000',
-  'http://localhost:5500',  // VS Code Live Server
+  'http://localhost:5500', // VS Code Live Server
+  'https://skillmart-production-eb9d.up.railway.app',  
 ];
 app.use(cors({
   origin: (origin, cb) => {
