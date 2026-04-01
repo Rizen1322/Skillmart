@@ -15,20 +15,27 @@ const ALLOWED = [
   '2-nu-eight.vercel.app',
   'http://localhost:8080',
   'http://localhost:3000',
-  'http://localhost:5500', // VS Code Live Server
+  'http://localhost:5500',// VS Code Live Server
   'https://skillmart-production-eb9d.up.railway.app',  
 ];
-app.use(cors({
-  origin: (origin, cb) => {
+const corsOptions = {
+  origin: function (origin, callback) {
     // allow requests with no origin (curl, Postman, mobile apps)
-    if (!origin || ALLOWED.includes(origin)) return cb(null, true);
-    cb(new Error('Not allowed by CORS'));
+    if (!origin || ALLOWED.includes(origin)) return callback(null, true);
+
+    console.log('Blocked by CORS:', origin);
+    return callback(null, false); // ⚠ не выдаём ошибку, просто не ставим header
   },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-app.options('*', cors()); // preflight for all routes
+};
+
+// подключаем для всех роутов
+app.use(cors(corsOptions));
+
+// обработка OPTIONS preflight
+app.options('*', cors(corsOptions));
 
 // ── MIDDLEWARE ───────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
