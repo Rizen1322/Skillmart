@@ -2,30 +2,24 @@ const router = require('express').Router();
 const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 
-// GET /api/notifications
 router.get('/', authenticate, async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || 50; // точное число
-    if (limit <= 0) return res.status(400).json({ error: 'Неверный limit' });
-
+    const limit = Math.min(100, parseInt(req.query.limit) || 50);
     const { rows } = await query(
       'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
       [req.user.id, limit]
     );
-
     const { rows: [cnt] } = await query(
       'SELECT COUNT(*) AS count FROM notifications WHERE user_id = ? AND is_read = 0',
       [req.user.id]
     );
-
-    res.json({ notifications: rows, unread_count: +(cnt?.count || 0) });
+    res.json({ notifications: rows, unread_count: parseInt(cnt?.count || 0) });
   } catch (err) {
-    console.error('GET /notifications:', err);
+    console.error('GET /notifications:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// PATCH /api/notifications/read-all
 router.patch('/read-all', authenticate, async (req, res) => {
   try {
     await query('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [req.user.id]);
@@ -35,7 +29,6 @@ router.patch('/read-all', authenticate, async (req, res) => {
   }
 });
 
-// DELETE /api/notifications/:id
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     await query('DELETE FROM notifications WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);

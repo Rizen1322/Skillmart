@@ -14,24 +14,18 @@ const canTransition = (role, from, to) => TRANSITIONS[role]?.[from]?.includes(to
 // GET /api/orders
 router.get('/', authenticate, async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = parseInt(req.query.limit) || 50;
+    const page   = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit  = Math.min(100, parseInt(req.query.limit) || 50);
     const offset = (page - 1) * limit;
+    const status = req.query.status || null;
+    const isC    = req.user.role === 'customer';
 
-    const isCustomer = req.user.role === 'customer';
-    let where = isCustomer ? 'o.customer_id = ?' : 'o.executor_id = ?';
     const params = [req.user.id];
+    let where    = isC ? 'o.customer_id = ?' : 'o.executor_id = ?';
+    if (status) { params.push(status); where += ' AND o.status = ?'; }
+    params.push(limit, offset);
 
-    if (req.query.status) {
-      where += ' AND o.status = ?';
-      params.push(req.query.status);
-    }
-
-    // LIMIT и OFFSET должны быть числами
-    params.push(limit);
-    params.push(offset);
-
-    const sql = `
+    const { rows } = await query(`
       SELECT o.*, s.title AS service_title,
              cu.name AS customer_name, cu.avatar AS customer_avatar,
              ex.name AS executor_name, ex.avatar AS executor_avatar
@@ -42,16 +36,11 @@ router.get('/', authenticate, async (req, res) => {
       WHERE ${where}
       ORDER BY o.created_at DESC
       LIMIT ? OFFSET ?
-    `;
+    `, params);
 
-    const { rows } = await query(sql, params.map(p => typeof p === 'string' ? p : Number(p)));
-
-    res.json({ 
-      data: rows, 
-      pagination: { total: rows.length, page, limit } 
-    });
+    res.json({ data: rows, pagination: { total: rows.length, page, limit } });
   } catch (err) {
-    console.error('GET /orders:', err);
+    console.error('GET /orders:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -59,7 +48,7 @@ router.get('/', authenticate, async (req, res) => {
 // GET /api/orders/:id
 router.get('/:id', authenticate, async (req, res) => {
   try {
-    const { rows } = await (require('../config/db').query)(`
+    const { rows } = await query(`
       SELECT o.*, s.title AS service_title, s.price AS service_price,
              cu.name AS customer_name, cu.avatar AS customer_avatar,
              ex.name AS executor_name, ex.avatar AS executor_avatar
@@ -72,6 +61,7 @@ router.get('/:id', authenticate, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Заказ не найден' });
     res.json(rows[0]);
   } catch (err) {
+    console.error('GET /orders/:id:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -86,11 +76,11 @@ router.post('/', authenticate, requireCustomer,
     const conn = await getConnection();
     try {
       await conn.beginTransaction();
-      const [[svc]] = await conn.execute('SELECT * FROM services WHERE id = ? AND is_active = 1', [service_id]);
+      const [[svc]] = await conn.query('SELECT * FROM services WHERE id = ? AND is_active = 1', [service_id]);
       if (!svc) { await conn.rollback(); return res.status(404).json({ error: 'Услуга не найдена' }); }
       if (svc.executor_id === req.user.id) { await conn.rollback(); return res.status(400).json({ error: 'Нельзя заказать свою услугу' }); }
 
-      const [[bal]] = await conn.execute('SELECT amount FROM balances WHERE user_id = ?', [req.user.id]);
+      const [[bal]] = await conn.query('SELECT amount FROM balances WHERE user_id = ?', [req.user.id]);
       const balance = parseFloat(bal?.amount || 0);
       if (balance < parseFloat(svc.price)) {
         await conn.rollback();
@@ -100,9 +90,9 @@ router.post('/', authenticate, requireCustomer,
         });
       }
 
-      await conn.execute('UPDATE balances SET amount = amount - ? WHERE user_id = ?', [svc.price, req.user.id]);
+      await conn.query('UPDATE balances SET amount = amount - ? WHERE user_id = ?', [svc.price, req.user.id]);
       const txId = randomUUID();
-      await conn.execute(
+      await conn.query(
         'INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
         [txId, req.user.id, 'payment', svc.price, `Оплата заказа: ${svc.title}`]
       );
@@ -110,20 +100,19 @@ router.post('/', authenticate, requireCustomer,
       const orderId = randomUUID();
       const deadline = new Date();
       deadline.setDate(deadline.getDate() + svc.deadline);
-      await conn.execute(
+      await conn.query(
         'INSERT INTO orders(id,service_id,customer_id,executor_id,total_price,deadline_date,requirements) VALUES(?,?,?,?,?,?,?)',
         [orderId, service_id, req.user.id, svc.executor_id, svc.price,
          deadline.toISOString().slice(0,10), requirements || null]
       );
-      await conn.execute('UPDATE services SET orders_count = orders_count + 1 WHERE id = ?', [service_id]);
-      await conn.execute(
+      await conn.query('UPDATE services SET orders_count = orders_count + 1 WHERE id = ?', [service_id]);
+      await conn.query(
         'INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
         [randomUUID(), svc.executor_id, 'order_created', '📦 Новый заказ!',
          `Заказ на «${svc.title}»`, JSON.stringify({ order_id: orderId })]
       );
       await conn.commit();
-
-      const [[order]] = await conn.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+      const [[order]] = await conn.query('SELECT * FROM orders WHERE id = ?', [orderId]);
       res.status(201).json(order);
     } catch (err) {
       await conn.rollback();
@@ -139,11 +128,12 @@ router.patch('/:id/price', authenticate,
   async (req, res) => {
     const errs = validationResult(req);
     if (!errs.isEmpty()) return res.status(400).json({ error: 'Укажите корректную цену' });
-    const { price, note } = req.body;
-    const conn = await getConnection();
+    const price = parseFloat(req.body.price);
+    const note  = req.body.note || null;
+    const conn  = await getConnection();
     try {
       await conn.beginTransaction();
-      const [[order]] = await conn.execute(
+      const [[order]] = await conn.query(
         'SELECT * FROM orders WHERE id = ? AND (customer_id = ? OR executor_id = ?)',
         [req.params.id, req.user.id, req.user.id]
       );
@@ -153,33 +143,34 @@ router.patch('/:id/price', authenticate,
       }
 
       const isCustomer = req.user.id === order.customer_id;
-      const diff       = parseFloat(price) - parseFloat(order.total_price);
+      const diff = price - parseFloat(order.total_price);
 
       if (isCustomer && diff > 0) {
-        const [[bal]] = await conn.execute('SELECT amount FROM balances WHERE user_id = ?', [req.user.id]);
+        const [[bal]] = await conn.query('SELECT amount FROM balances WHERE user_id = ?', [req.user.id]);
         if (parseFloat(bal?.amount || 0) < diff) {
           await conn.rollback(); return res.status(400).json({ error: 'Недостаточно средств для доплаты' });
         }
-        await conn.execute('UPDATE balances SET amount = amount - ? WHERE user_id = ?', [diff, req.user.id]);
-        await conn.execute('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
+        await conn.query('UPDATE balances SET amount = amount - ? WHERE user_id = ?', [diff, req.user.id]);
+        await conn.query('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
           [randomUUID(), req.user.id, 'payment', diff, 'Доплата по заказу']);
       } else if (isCustomer && diff < 0) {
-        await conn.execute('UPDATE balances SET amount = amount + ? WHERE user_id = ?', [Math.abs(diff), req.user.id]);
-        await conn.execute('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
-          [randomUUID(), req.user.id, 'deposit', Math.abs(diff), 'Возврат по заказу']);
+        const refund = Math.abs(diff);
+        await conn.query('UPDATE balances SET amount = amount + ? WHERE user_id = ?', [refund, req.user.id]);
+        await conn.query('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
+          [randomUUID(), req.user.id, 'deposit', refund, 'Возврат по заказу']);
       }
 
-      await conn.execute('UPDATE orders SET total_price = ? WHERE id = ?', [price, order.id]);
+      await conn.query('UPDATE orders SET total_price = ? WHERE id = ?', [price, order.id]);
 
       const notifyId = isCustomer ? order.executor_id : order.customer_id;
       const whoName  = isCustomer ? 'Заказчик' : 'Исполнитель';
-      await conn.execute('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
+      await conn.query('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
         [randomUUID(), notifyId, 'price_changed', '💰 Цена изменена',
          `${whoName} изменил цену на ${fmt(price)} ₽${note ? ' — ' + note : ''}`,
          JSON.stringify({ order_id: order.id })]);
-      await conn.execute('INSERT INTO messages(id,order_id,sender_id,message) VALUES(?,?,?,?)',
+      await conn.query('INSERT INTO messages(id,order_id,sender_id,message) VALUES(?,?,?,?)',
         [randomUUID(), order.id, req.user.id,
-         `💰 ${whoName} изменил цену: ${fmt(parseFloat(order.total_price))} → ${fmt(parseFloat(price))} ₽${note ? ' (' + note + ')' : ''}`]);
+         `💰 ${whoName} изменил цену: ${fmt(parseFloat(order.total_price))} → ${fmt(price)} ₽${note ? ' (' + note + ')' : ''}`]);
       await conn.commit();
       res.json({ message: 'Цена обновлена', new_price: price });
     } catch (err) {
@@ -200,7 +191,7 @@ router.patch('/:id/status', authenticate,
     const conn = await getConnection();
     try {
       await conn.beginTransaction();
-      const [[order]] = await conn.execute(
+      const [[order]] = await conn.query(
         'SELECT * FROM orders WHERE id = ? AND (customer_id = ? OR executor_id = ?)',
         [req.params.id, req.user.id, req.user.id]
       );
@@ -209,45 +200,45 @@ router.patch('/:id/status', authenticate,
         await conn.rollback(); return res.status(400).json({ error: `Переход ${order.status} → ${newStatus} недопустим` });
       }
 
-      await conn.execute('UPDATE orders SET status = ? WHERE id = ?', [newStatus, order.id]);
-      await conn.execute(
+      await conn.query('UPDATE orders SET status = ? WHERE id = ?', [newStatus, order.id]);
+      await conn.query(
         'INSERT INTO order_status_log(order_id,old_status,new_status,changed_by,note) VALUES(?,?,?,?,?)',
         [order.id, order.status, newStatus, req.user.id, note || null]
       );
 
       if (newStatus === 'completed') {
         const price = parseFloat(order.total_price);
-        await conn.execute(
+        await conn.query(
           'INSERT INTO balances(user_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE amount = amount + ?',
           [order.executor_id, price, price]
         );
-        await conn.execute('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
+        await conn.query('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
           [randomUUID(), order.executor_id, order.id, 'deposit', price, 'Оплата за выполненный заказ']);
-        await conn.execute('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
+        await conn.query('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
           [randomUUID(), order.executor_id, 'payment_received', '💰 Оплата получена!',
            `Зачислено ${fmt(price)} ₽`, JSON.stringify({ order_id: order.id })]);
       }
 
       if (newStatus === 'cancelled' && order.status !== 'completed') {
         const price = parseFloat(order.total_price);
-        await conn.execute(
+        await conn.query(
           'INSERT INTO balances(user_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE amount = amount + ?',
           [order.customer_id, price, price]
         );
-        await conn.execute('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
+        await conn.query('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
           [randomUUID(), order.customer_id, order.id, 'deposit', price, 'Возврат за отменённый заказ']);
-        await conn.execute('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
+        await conn.query('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
           [randomUUID(), order.customer_id, 'payment_received', '↩️ Возврат средств',
            `Возвращено ${fmt(price)} ₽`, JSON.stringify({ order_id: order.id })]);
       }
 
       const notifyId = req.user.id === order.customer_id ? order.executor_id : order.customer_id;
-      await conn.execute('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
+      await conn.query('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
         [randomUUID(), notifyId, 'order_accepted', 'Статус заказа изменён',
          `«${order.status}» → «${newStatus}»`, JSON.stringify({ order_id: order.id })]);
 
       await conn.commit();
-      const [[updated]] = await conn.execute('SELECT * FROM orders WHERE id = ?', [order.id]);
+      const [[updated]] = await conn.query('SELECT * FROM orders WHERE id = ?', [order.id]);
       res.json(updated);
     } catch (err) {
       await conn.rollback();

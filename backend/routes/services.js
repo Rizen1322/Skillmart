@@ -3,19 +3,25 @@ const { body, validationResult } = require('express-validator');
 const { query, randomUUID } = require('../config/db');
 const { authenticate, requireExecutor } = require('../middleware/auth');
 
-// GET /api/services
 router.get('/', async (req, res) => {
   try {
-    const { category, search, min_price, max_price, sort = 'newest', page = 1, limit = 12 } = req.query;
+    const page    = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit   = Math.min(50, parseInt(req.query.limit) || 12);
+    const offset  = (page - 1) * limit;
+    const sort    = req.query.sort || 'newest';
+    const category = req.query.category || null;
+    const search   = req.query.search   || null;
+    const min_price = req.query.min_price ? parseFloat(req.query.min_price) : null;
+    const max_price = req.query.max_price ? parseFloat(req.query.max_price) : null;
+
     const params = [];
     const conds  = ['s.is_active = 1', 'u.is_active = 1'];
 
     if (category)  { params.push(category);   conds.push('c.slug = ?'); }
-    if (min_price) { params.push(+min_price); conds.push('s.price >= ?'); }
-    if (max_price) { params.push(+max_price); conds.push('s.price <= ?'); }
+    if (min_price) { params.push(min_price);  conds.push('s.price >= ?'); }
+    if (max_price) { params.push(max_price);  conds.push('s.price <= ?'); }
     if (search) {
       const term = `%${search}%`;
-      // search title, description and JSON tags array
       params.push(term, term, `%${search}%`);
       conds.push(`(s.title LIKE ? OR s.description LIKE ? OR JSON_SEARCH(JSON_EXTRACT(s.tags,'$[*]'), 'one', ?) IS NOT NULL)`);
     }
@@ -27,10 +33,6 @@ router.get('/', async (req, res) => {
       newest:     's.created_at DESC',
     }[sort] || 's.created_at DESC';
 
-    const lim    = Math.min(50, Math.max(1, +limit));
-    const offset = (Math.max(1, +page) - 1) * lim;
-
-    // total count via subquery (window func alternative)
     const countParams = [...params];
     const { rows: countRows } = await query(
       `SELECT COUNT(*) AS total FROM services s
@@ -38,9 +40,9 @@ router.get('/', async (req, res) => {
        JOIN categories c ON c.id = s.category_id
        WHERE ${conds.join(' AND ')}`, countParams
     );
-    const total = countRows[0]?.total || 0;
+    const total = parseInt(countRows[0]?.total || 0);
 
-    params.push(lim, offset);
+    params.push(limit, offset);
     const { rows } = await query(`
       SELECT
         s.id, s.title, s.price, s.deadline, s.rating, s.reviews_count, s.orders_count,
@@ -56,14 +58,13 @@ router.get('/', async (req, res) => {
       LIMIT ? OFFSET ?
     `, params);
 
-    res.json({ data: rows, pagination: { total, page: +page, limit: lim, pages: Math.ceil(total / lim) || 0 } });
+    res.json({ data: rows, pagination: { total, page, limit, pages: Math.ceil(total / limit) || 0 } });
   } catch (err) {
     console.error('GET /services:', err.message);
     res.status(500).json({ error: 'Ошибка загрузки услуг' });
   }
 });
 
-// GET /api/services/:id
 router.get('/:id', async (req, res) => {
   try {
     const { rows } = await query(`
@@ -97,7 +98,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/services
 router.post('/', authenticate, requireExecutor,
   body('title').trim().isLength({ min: 10 }),
   body('description').trim().isLength({ min: 30 }),
@@ -111,8 +111,8 @@ router.post('/', authenticate, requireExecutor,
       const { title, description, price, deadline, category_id, tags = [] } = req.body;
       const id = randomUUID();
       await query(
-        'INSERT INTO services(id, executor_id, category_id, title, description, price, deadline, tags) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, req.user.id, category_id, title, description, price, deadline, JSON.stringify(tags)]
+        'INSERT INTO services(id,executor_id,category_id,title,description,price,deadline,tags) VALUES(?,?,?,?,?,?,?,?)',
+        [id, req.user.id, parseInt(category_id), title, description, parseFloat(price), parseInt(deadline), JSON.stringify(tags)]
       );
       const { rows } = await query('SELECT * FROM services WHERE id = ?', [id]);
       res.status(201).json(rows[0]);
@@ -123,7 +123,6 @@ router.post('/', authenticate, requireExecutor,
   }
 );
 
-// PUT /api/services/:id
 router.put('/:id', authenticate, requireExecutor, async (req, res) => {
   try {
     const { title, description, price, deadline, category_id, tags = [], is_active } = req.body;
@@ -134,8 +133,8 @@ router.put('/:id', authenticate, requireExecutor, async (req, res) => {
     await query(
       `UPDATE services SET title=?, description=?, price=?, deadline=?, category_id=?, tags=?,
        is_active=COALESCE(?,is_active) WHERE id=?`,
-      [title, description, price, deadline, category_id, JSON.stringify(tags),
-       is_active !== undefined ? (is_active ? 1 : 0) : null, req.params.id]
+      [title, description, parseFloat(price), parseInt(deadline), parseInt(category_id),
+       JSON.stringify(tags), is_active !== undefined ? (is_active ? 1 : 0) : null, req.params.id]
     );
     const { rows } = await query('SELECT * FROM services WHERE id = ?', [req.params.id]);
     res.json(rows[0]);
@@ -144,7 +143,6 @@ router.put('/:id', authenticate, requireExecutor, async (req, res) => {
   }
 });
 
-// DELETE /api/services/:id
 router.delete('/:id', authenticate, requireExecutor, async (req, res) => {
   try {
     const { rows } = await query(

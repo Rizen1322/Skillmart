@@ -3,7 +3,6 @@ const { body, validationResult } = require('express-validator');
 const { query, randomUUID } = require('../config/db');
 const { authenticate } = require('../middleware/auth');
 
-// GET /api/messages/:orderId
 router.get('/:orderId', authenticate, async (req, res) => {
   try {
     const { rows: [order] } = await query(
@@ -26,11 +25,11 @@ router.get('/:orderId', authenticate, async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
+    console.error('GET /messages:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// POST /api/messages/:orderId
 router.post('/:orderId', authenticate,
   body('message').trim().isLength({ min: 1, max: 2000 }),
   async (req, res) => {
@@ -45,13 +44,12 @@ router.post('/:orderId', authenticate,
 
       const id = randomUUID();
       await query(
-        'INSERT INTO messages(id, order_id, sender_id, message) VALUES(?, ?, ?, ?)',
+        'INSERT INTO messages(id,order_id,sender_id,message) VALUES(?,?,?,?)',
         [id, req.params.orderId, req.user.id, req.body.message]
       );
       const { rows: [msg] } = await query(
         'SELECT m.*, u.name AS sender_name FROM messages m JOIN users u ON u.id = m.sender_id WHERE m.id = ?', [id]
       );
-
       const toId = req.user.id === order.customer_id ? order.executor_id : order.customer_id;
       await query(
         'INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
@@ -60,6 +58,7 @@ router.post('/:orderId', authenticate,
       );
       res.status(201).json(msg);
     } catch (err) {
+      console.error('POST /messages:', err.message);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   }

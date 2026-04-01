@@ -3,15 +3,16 @@ const { body, validationResult } = require('express-validator');
 const { query, randomUUID } = require('../config/db');
 const { authenticate, requireCustomer } = require('../middleware/auth');
 
-// GET /api/reviews
 router.get('/', async (req, res) => {
   try {
-    const { executor_id, service_id, page = 1, limit = 10 } = req.query;
-    const offset = (Math.max(1, +page) - 1) * +limit;
-    const params = []; const conds = [];
-    if (executor_id) { params.push(executor_id); conds.push('r.executor_id = ?'); }
-    if (service_id)  { params.push(service_id);  conds.push('r.service_id = ?'); }
-    params.push(+limit, offset);
+    const page    = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit   = Math.min(50, parseInt(req.query.limit) || 10);
+    const offset  = (page - 1) * limit;
+    const params  = [];
+    const conds   = [];
+    if (req.query.executor_id) { params.push(req.query.executor_id); conds.push('r.executor_id = ?'); }
+    if (req.query.service_id)  { params.push(req.query.service_id);  conds.push('r.service_id = ?'); }
+    params.push(limit, offset);
 
     const { rows } = await query(`
       SELECT r.*, u.name AS customer_name, u.avatar AS customer_avatar, s.title AS service_title
@@ -24,11 +25,11 @@ router.get('/', async (req, res) => {
     `, params);
     res.json(rows);
   } catch (err) {
+    console.error('GET /reviews:', err.message);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
-// POST /api/reviews
 router.post('/', authenticate, requireCustomer,
   body('order_id').isUUID(),
   body('rating').isInt({ min: 1, max: 5 }),
@@ -50,7 +51,7 @@ router.post('/', authenticate, requireCustomer,
       const id = randomUUID();
       await query(
         'INSERT INTO reviews(id,order_id,service_id,customer_id,executor_id,rating,comment) VALUES(?,?,?,?,?,?,?)',
-        [id, order_id, order.service_id, req.user.id, order.executor_id, rating, comment || null]
+        [id, order_id, order.service_id, req.user.id, order.executor_id, parseInt(rating), comment || null]
       );
       await query(
         'INSERT INTO notifications(id,user_id,type,title,data) VALUES(?,?,?,?,?)',
@@ -59,6 +60,7 @@ router.post('/', authenticate, requireCustomer,
       const { rows: [review] } = await query('SELECT * FROM reviews WHERE id = ?', [id]);
       res.status(201).json(review);
     } catch (err) {
+      console.error('POST /reviews:', err.message);
       res.status(500).json({ error: 'Ошибка сервера' });
     }
   }
