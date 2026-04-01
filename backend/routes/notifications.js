@@ -5,17 +5,22 @@ const { authenticate } = require('../middleware/auth');
 // GET /api/notifications
 router.get('/', authenticate, async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = Number(req.query.limit) || 50; // точное число
+    if (limit <= 0) return res.status(400).json({ error: 'Неверный limit' });
+
     const { rows } = await query(
       'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
       [req.user.id, limit]
     );
+
     const { rows: [cnt] } = await query(
       'SELECT COUNT(*) AS count FROM notifications WHERE user_id = ? AND is_read = 0',
       [req.user.id]
     );
+
     res.json({ notifications: rows, unread_count: +(cnt?.count || 0) });
   } catch (err) {
+    console.error('GET /notifications:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

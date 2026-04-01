@@ -14,16 +14,24 @@ const canTransition = (role, from, to) => TRANSITIONS[role]?.[from]?.includes(to
 // GET /api/orders
 router.get('/', authenticate, async (req, res) => {
   try {
-    const { status, page = 1, limit = 50 } = req.query;
-    const offset = (Math.max(1, +page) - 1) * +limit;
-    const isC    = req.user.role === 'customer';
-    const params = [req.user.id];
-    let where    = isC ? 'o.customer_id = ?' : 'o.executor_id = ?';
-    if (status) { params.push(status); where += ' AND o.status = ?'; }
-    params.push(+limit, offset);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
 
-    const { query } = require("../config/db");
-    const { rows } = await query(`
+    const isCustomer = req.user.role === 'customer';
+    let where = isCustomer ? 'o.customer_id = ?' : 'o.executor_id = ?';
+    const params = [req.user.id];
+
+    if (req.query.status) {
+      where += ' AND o.status = ?';
+      params.push(req.query.status);
+    }
+
+    // LIMIT и OFFSET должны быть числами
+    params.push(limit);
+    params.push(offset);
+
+    const sql = `
       SELECT o.*, s.title AS service_title,
              cu.name AS customer_name, cu.avatar AS customer_avatar,
              ex.name AS executor_name, ex.avatar AS executor_avatar
@@ -34,10 +42,16 @@ router.get('/', authenticate, async (req, res) => {
       WHERE ${where}
       ORDER BY o.created_at DESC
       LIMIT ? OFFSET ?
-    `, params);
-    res.json({ data: rows, pagination: { total: rows.length, page: +page, limit: +limit } });
+    `;
+
+    const { rows } = await query(sql, params.map(p => typeof p === 'string' ? p : Number(p)));
+
+    res.json({ 
+      data: rows, 
+      pagination: { total: rows.length, page, limit } 
+    });
   } catch (err) {
-    console.error(err);
+    console.error('GET /orders:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
