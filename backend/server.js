@@ -17,6 +17,7 @@ app.use((req, res, next) => {
     'http://localhost:3000',
     'http://localhost:5500',
     'https://skillmart-production-eb9d.up.railway.app',
+    'https://2-h1b61l0p4-rizens-projects-3d6c042b.vercel.app',
   ];
 
   const origin = req.headers.origin;
