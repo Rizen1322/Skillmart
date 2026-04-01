@@ -59,7 +59,7 @@ async function main() {
 
     console.log("✅ Schema applied successfully! Database is ready.");
   } catch (e) {
-    console.error("❌ Schema error:", e.message);
+    console.error('❌ FULL ERROR:', e);
     process.exit(1);
   } finally {
     if (conn) await conn.end();
