@@ -58,6 +58,8 @@ const swaggerSpec = swaggerJsdoc({
 });
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.set('trust proxy', 1); // ставим 1, чтобы Express понимал заголовок X-Forwarded-For
+
 // ── ROUTES ───────────────────────────────────────────────────
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/categories',    require('./routes/categories'));
@@ -80,3 +82,12 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, '0.0.0.0', () =>
   console.log(`🚀 Skillmart API on port ${PORT}\n📖 Docs: /docs`)
 );
+
+
+try {
+  const [rows] = await conn.execute('SELECT * FROM orders LIMIT ?', [limitNum]);
+  res.json(rows);
+} catch (e) {
+  console.error('❌ Orders error:', e);
+  res.status(500).json({ error: e.message });
+}
