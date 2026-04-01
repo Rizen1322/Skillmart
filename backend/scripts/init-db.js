@@ -32,23 +32,37 @@ function buildConfig() {
 }
 
 async function main() {
-  const schemaPath = path.join(__dirname, '../schema.sql');
+  const schemaPath = path.resolve(__dirname, "../schema.sql");
+
+  console.log("📂 Looking for schema at:", schemaPath);
+
   if (!fs.existsSync(schemaPath)) {
-    console.error('❌ schema.sql not found at', schemaPath);
+    console.error("❌ schema.sql not found at", schemaPath);
+
+    console.log("📂 Current dir:", __dirname);
+    console.log("📂 Files here:", fs.readdirSync(__dirname));
+    console.log("📂 Parent files:", fs.readdirSync(path.resolve(__dirname, "..")));
+
     process.exit(1);
   }
-  const sql = fs.readFileSync(schemaPath, 'utf8');
-  console.log('🔄 Connecting to MySQL...');
-  const conn = await mysql.createConnection(buildConfig());
-  console.log('✅ Connected. Applying schema...');
+
+  const sql = fs.readFileSync(schemaPath, "utf8");
+
+  console.log("🔄 Connecting to MySQL...");
+
+  let conn;
   try {
+    conn = await mysql.createConnection(buildConfig());
+    console.log("✅ Connected. Applying schema...");
+
     await conn.query(sql);
-    console.log('✅ Schema applied successfully! Database is ready.');
+
+    console.log("✅ Schema applied successfully! Database is ready.");
   } catch (e) {
-    console.error('❌ Schema error:', e.message);
+    console.error("❌ Schema error:", e.message);
     process.exit(1);
   } finally {
-    await conn.end();
+    if (conn) await conn.end();
   }
 }
 main();
