@@ -12,29 +12,31 @@ const PORT = process.env.PORT || 3000;
 
 // ── CORS ────────────────────────────────────────────────────
 const ALLOWED = [
-  '2-nu-eight.vercel.app',
+  'https://2-nu-eight.vercel.app',
   'http://localhost:8080',
   'http://localhost:3000',
-  'http://localhost:5500',// VS Code Live Server
-  'https://skillmart-production-eb9d.up.railway.app',  
+  'http://localhost:5500',
+  'https://skillmart-production-eb9d.up.railway.app',
 ];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (curl, Postman, mobile apps)
-    if (!origin || ALLOWED.includes(origin)) return callback(null, true);
-
+    // allow requests with no origin (curl, Postman, мобильные приложения)
+    if (!origin || ALLOWED.includes(origin)) {
+      return callback(null, true);
+    }
     console.log('Blocked by CORS:', origin);
-    return callback(null, false); // ⚠ не выдаём ошибку, просто не ставим header
+    return callback(null, false); // ⚠️ не ошибка, просто нет header
   },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type','Authorization'],
 };
 
-// подключаем для всех роутов
+// подключаем CORS
 app.use(cors(corsOptions));
 
-// обработка OPTIONS preflight
+// ОБЯЗАТЕЛЬНО обработка OPTIONS preflight
 app.options('*', cors(corsOptions));
 
 // ── MIDDLEWARE ───────────────────────────────────────────────
@@ -51,7 +53,7 @@ const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
     info: { title: 'Skillmart API', version: '1.0.0' },
-    servers: [{ url: 'https://skillmart-7agy.onrender.com/api' }, { url: '/api' }],
+    servers: [{ url: 'https://skillmart-production-eb9d.up.railway.app/api' }, { url: '/api' }],
     components: { securitySchemes: { BearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
   },
   apis: ['./routes/*.js'],
