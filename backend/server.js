@@ -1,11 +1,11 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+require('dotenv').config();
+const express      = require('express');
+const cors         = require('cors');
+const helmet       = require('helmet');
+const morgan       = require('morgan');
+const rateLimit    = require('express-rate-limit');
+const swaggerUi    = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -84,10 +84,3 @@ app.listen(PORT, '0.0.0.0', () =>
 );
 
 
-try {
-  const [rows] = await conn.execute('SELECT * FROM orders LIMIT ?', [limitNum]);
-  res.json(rows);
-} catch (e) {
-  console.error('❌ Orders error:', e);
-  res.status(500).json({ error: e.message });
-}
