@@ -1,7 +1,6 @@
 const mysql = require('mysql2/promise');
 const { randomUUID } = require('crypto');
 
-// Parse DATABASE_URL if provided (Render, Railway, PlanetScale, etc.)
 function buildConfig(uri) {
   const u = new URL(uri);
   return {
@@ -20,16 +19,14 @@ const baseConfig = {
   queueLimit:         0,
   charset:            'utf8mb4',
   timezone:           'Z',
-  decimalNumbers:     true,   // return DECIMAL as JS number
+  decimalNumbers:     true,
   supportBigNumbers:  true,
   typeCast(field, next) {
-    // auto-parse JSON columns
     if (field.type === 'JSON') {
       const val = field.string('utf8');
       if (val === null || val === undefined) return null;
       try { return JSON.parse(val); } catch { return val; }
     }
-    // return TINYINT(1) as boolean
     if (field.type === 'TINY' && field.length === 1) {
       return field.string() === '1';
     }
@@ -48,22 +45,27 @@ const pool = process.env.DATABASE_URL
       ...baseConfig,
     });
 
-// Test on startup
 pool.query('SELECT 1')
   .then(() => console.log('✅ MySQL connected'))
   .catch(e => console.error('❌ MySQL error:', e.message));
 
 /**
- * Universal query helper — returns { rows } just like pg
- * For SELECT: rows = array of row objects
- * For INSERT/UPDATE/DELETE: rows = { affectedRows, insertId }
+ * Sanitize params: convert undefined→null, floats→int for LIMIT/OFFSET,
+ * use pool.query() (not execute) to avoid prepared-statement type errors.
  */
+const sanitize = (params) => params.map(p => {
+  if (p === undefined) return null;
+  // mysql2 prepared statements choke on float LIMIT/OFFSET — force integers
+  if (typeof p === 'number' && !Number.isInteger(p)) return Math.trunc(p);
+  return p;
+});
+
 const query = async (sql, params = []) => {
-  const [result] = await pool.execute(sql, params);
+  // Use pool.query (non-prepared) — avoids ER_WRONG_ARGUMENTS with LIMIT/OFFSET
+  const [result] = await pool.query(sql, sanitize(params));
   return { rows: result };
 };
 
-/** Get a connection for manual transactions */
 const getConnection = () => pool.getConnection();
 
 module.exports = { pool, query, getConnection, randomUUID };
