@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // ── CORS ────────────────────────────────────────────────────
 const ALLOWED = [
-  'https://skillmart-1.onrender.com',
+  '2-nu-eight.vercel.app',
   'http://localhost:8080',
   'http://localhost:3000',
   'http://localhost:5500',  // VS Code Live Server
