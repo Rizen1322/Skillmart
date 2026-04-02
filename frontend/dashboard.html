@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
     .notif-bell {
-      position:fixed; top:.9rem; right:1.2rem; z-index:300;
+      position:fixed; top:.85rem; right:1rem; z-index:9100;
       display:flex; align-items:center; gap:.5rem;
     }
     .bell-btn {
@@ -15,17 +15,19 @@
       background:var(--surface); border:1.5px solid rgba(0,0,0,.1);
       box-shadow:0 2px 8px rgba(0,0,0,.07);
       display:flex; align-items:center; justify-content:center;
-      font-size:1rem; cursor:pointer; transition:all .18s; position:relative;
+      font-size:1rem; cursor:pointer; transition:all .18s;
+      position:relative; flex-shrink:0; overflow:visible;
     }
     .bell-btn:hover { border-color:var(--indigo); }
     .bell-count {
-      position:absolute; top:-5px; right:-5px;
-      min-width:16px; height:16px; border-radius:100px;
+      position:absolute; top:-6px; right:-6px;
+      min-width:17px; height:17px; border-radius:100px;
       background:var(--red); color:#fff;
-      font:700 .62rem 'Inter',sans-serif;
+      font:700 .6rem 'Inter',sans-serif;
       display:flex; align-items:center; justify-content:center;
-      padding:0 3px; border:2px solid var(--bg);
+      padding:0 3px; border:2px solid #fff; z-index:1;
       opacity:0; transform:scale(.6); transition:all .2s;
+      pointer-events:none;
     }
     .bell-count.show { opacity:1; transform:none; }
     .bell-dropdown {
@@ -105,7 +107,7 @@
 <div class="sb-overlay" id="sb-ov" onclick="closeSB()"></div>
 
 <div class="notif-bell" id="bell-wrap">
-  <div class="bell-btn" id="bell-btn" onclick="toggleBell()">
+  <div class="bell-btn" id="bell-btn" onclick="toggleBell(event)">
     🔔
     <div class="bell-count" id="bell-cnt"></div>
   </div>
@@ -230,7 +232,12 @@ async function refreshBell() {
   } catch {}
 }
 function bellClick(orderId) { closeBell(); if(orderId) go('chat',{oid:orderId}); else go('notifs'); }
-function toggleBell() { bellOpen=!bellOpen; document.getElementById('bell-dd').classList.toggle('open',bellOpen); if(bellOpen) refreshBell(); }
+function toggleBell(e) {
+  if(e) e.stopPropagation();
+  bellOpen=!bellOpen;
+  document.getElementById('bell-dd').classList.toggle('open',bellOpen);
+  if(bellOpen) refreshBell();
+}
 function closeBell()  { bellOpen=false; document.getElementById('bell-dd').classList.remove('open'); }
 async function markAllRead() { try { await api('/notifications/read-all','PATCH'); refreshBell(); } catch {} }
 function relTime(s) {
@@ -240,7 +247,9 @@ function relTime(s) {
   if(diff<86400) return Math.floor(diff/3600)+' ч назад';
   return fmtDate(s);
 }
-document.addEventListener('click', e => { if(bellOpen && !document.getElementById('bell-wrap').contains(e.target)) closeBell(); });
+document.addEventListener('click', e => {
+  if(bellOpen && !document.getElementById('bell-btn').contains(e.target) && !document.getElementById('bell-dd').contains(e.target)) closeBell();
+});
 
 async function loadOrders() {
   try {
@@ -314,7 +323,6 @@ async function loadChat(oid) {
         </div>
       </div>
 
-      <!-- панель изменения цены — только для исполнителя -->
       ${!['completed','cancelled'].includes(order.status) && user.role==='executor' ? `
       <div class="price-change-bar">
         <label>💸 Предложить цену:</label>
@@ -579,7 +587,6 @@ async function loadProfile(){
         <button class="btn btn-primary" onclick="saveProfile()">Сохранить данные</button>
       </div>
 
-      <!-- PASSWORD -->
       <div class="form-box mb-2">
         <h3>Смена пароля</h3>
         <div class="form-group"><label>Текущий пароль</label><input type="password" id="p-old" placeholder="••••••••"/></div>
@@ -587,7 +594,6 @@ async function loadProfile(){
         <button class="btn btn-outline" onclick="changePass()">Изменить пароль</button>
       </div>
 
-      <!-- SOCIALS -->
       <div class="form-box mb-2">
         <h3>🔗 Социальные сети</h3>
         <div class="grid-2">
@@ -604,7 +610,6 @@ async function loadProfile(){
       </div>
 
       ${isExec?`
-      <!-- EXECUTOR STATUS -->
       <div class="form-box mb-2">
         <h3>🎯 Статус исполнителя</h3>
         <div class="grid-2">
@@ -626,7 +631,6 @@ async function loadProfile(){
         <button class="btn btn-primary" onclick="saveFull()">Сохранить статус</button>
       </div>
 
-      <!-- SKILLS -->
       <div class="form-box mb-2">
         <h3>🛠 Навыки</h3>
         <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый навык на новой строке: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Figma:5</code> (уровень 1–5)</p>
@@ -634,7 +638,6 @@ async function loadProfile(){
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить навыки</button>
       </div>
 
-      <!-- PORTFOLIO -->
       <div class="form-box">
         <h3>🎨 Портфолио</h3>
         <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый проект: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Название|URL|Описание</code> · макс. 5 проектов</p>
@@ -739,7 +742,6 @@ async function loadAdmin(){
           ['⚡','Активных',stats.active_orders],
           ['⭐','Отзывов',stats.total_reviews],
           ['🚫','Заблок.',stats.blocked_users],
-          ['💰','Баланс',f(stats.total_balance)+' ₽'],
           ['👋','Новых сегодня',stats.new_users_today],
           ['🛒','Заказов сегодня',stats.new_orders_today],
         ].map(([ico,lbl,val])=>`<div class="stat-card"><div class="stat-card-ico">${ico}</div><div class="stat-card-val">${val}</div><div class="stat-card-lbl">${lbl}</div></div>`).join('')}
@@ -862,31 +864,107 @@ async function adminServices(page=1){
   }catch(e){showErr(e.message);}
 }
 
-async function adminOrders(page=1){
+async function adminOrders(page=1,filter=''){
   try{
-    const res=await api(`/admin/orders?limit=15&page=${page}`);
+    const fParam = filter ? `&status=${filter}` : '';
+    const res=await api(`/admin/orders?limit=15&page=${page}${fParam}`);
     if(!res) return;
     const total=res.pagination?.total||0;
     const pages=Math.ceil(total/15)||1;
+    const statuses=['','created','in_progress','review','completed','cancelled'];
+    const statusLabels={'':'Все','created':'Новые','in_progress':'В работе','review':'На проверке','completed':'Завершённые','cancelled':'Отменённые'};
     setContent(`<h2><span>📦</span>Заказы <span style="font-size:.8rem;color:var(--muted);font-weight:400">${total} всего</span></h2>
       <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">← Назад</button>`,
-      `<div class="items-list">
+      `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem">
+        ${statuses.map(st=>`<button class="btn btn-${filter===st?'primary':'outline'} btn-sm" onclick="adminOrders(1,'${st}')">${statusLabels[st]}</button>`).join('')}
+      </div>
+      <div class="items-list">
         ${res.data.map(o=>`
-          <div class="order-card">
+          <div class="order-card" style="cursor:pointer" onclick="adminOrderDetail('${o.id}',${page},'${filter}')">
             <div style="flex:1;min-width:0">
               <div style="font-weight:600;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.service_title)}</div>
               <div style="font-size:.73rem;color:var(--muted)">${esc(o.customer_name)} → ${esc(o.executor_name)} · ${fmtPrice(o.total_price)} · ${fmtDate(o.created_at)}</div>
             </div>
-            <div style="flex-shrink:0">${fmtStatus(o.status)}</div>
+            <div style="flex-shrink:0;display:flex;align-items:center;gap:.4rem">${fmtStatus(o.status)}<span style="font-size:.72rem;color:var(--subtle)">→</span></div>
           </div>`).join('')}
       </div>
       <div class="pagination mt-2">
-        ${page>1?`<button class="page-btn" onclick="adminOrders(${page-1})">‹</button>`:''}
+        ${page>1?`<button class="page-btn" onclick="adminOrders(${page-1},'${filter}')">‹</button>`:''}
         <span style="align-self:center;font-size:.8rem;color:var(--muted)">стр. ${page} из ${pages}</span>
-        ${page<pages?`<button class="page-btn" onclick="adminOrders(${page+1})">›</button>`:''}
+        ${page<pages?`<button class="page-btn" onclick="adminOrders(${page+1},'${filter}')">›</button>`:''}
       </div>`
     );
   }catch(e){showErr(e.message);}
+}
+
+async function adminOrderDetail(id, backPage=1, backFilter=''){
+  try{
+    const o=await api(`/admin/orders/${id}`);
+    if(!o) return;
+    const statusLabels={created:'Создан',in_progress:'В работе',review:'На проверке',completed:'Завершён',cancelled:'Отменён'};
+    setContent(`<h2><span>📦</span>Заказ</h2>
+      <button class="btn btn-ghost btn-sm" onclick="adminOrders(${backPage},'${backFilter}')">← Заказы</button>`,
+      `<div class="form-box mb-2">
+        <h3 style="margin-bottom:.75rem">${esc(o.service_title)}</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.84rem;margin-bottom:1rem">
+          <div><span style="color:var(--muted)">Заказчик:</span> <b>${esc(o.customer_name)}</b> <span style="font-size:.72rem;color:var(--subtle)">${esc(o.customer_email)}</span></div>
+          <div><span style="color:var(--muted)">Исполнитель:</span> <b>${esc(o.executor_name)}</b> <span style="font-size:.72rem;color:var(--subtle)">${esc(o.executor_email)}</span></div>
+          <div><span style="color:var(--muted)">Цена:</span> <b>${fmtPrice(o.total_price)}</b></div>
+          <div><span style="color:var(--muted)">Статус:</span> ${fmtStatus(o.status)}</div>
+          <div><span style="color:var(--muted)">Создан:</span> ${fmtDate(o.created_at)}</div>
+          ${o.requirements?`<div style="grid-column:1/-1"><span style="color:var(--muted)">ТЗ:</span> ${esc(o.requirements)}</div>`:''}
+        </div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.5rem">📋 История статусов</div>
+        ${(o.status_log||[]).map(l=>`<div style="font-size:.75rem;padding:.22rem 0;border-bottom:1px solid var(--border)">${fmtDate(l.created_at)} — <b>${l.old_status}</b> → <b>${l.new_status}</b>${l.note?` (${esc(l.note)})`:''}</div>`).join('') || '<div style="font-size:.75rem;color:var(--muted)">нет записей</div>'}
+      </div>
+
+      <div class="form-box mb-2">
+        <h3 style="margin-bottom:.75rem">⚡ Действия администратора</h3>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+          ${['created','in_progress','review','completed','cancelled'].map(st=>
+            st===o.status?'':`<button class="btn btn-outline btn-sm" onclick="adminForceStatus('${id}','${st}','${backPage}','${backFilter}')">→ ${statusLabels[st]||st}</button>`
+          ).join('')}
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <input type="text" id="admin-msg" placeholder="Сообщение в чат от администратора..." style="flex:1;font-size:.84rem"/>
+          <button class="btn btn-primary btn-sm" onclick="adminSendMsg('${id}','${backPage}','${backFilter}')">Отправить</button>
+        </div>
+      </div>
+
+      <div class="form-box">
+        <h3 style="margin-bottom:.75rem">💬 Чат заказа (${(o.messages||[]).length} сообщений)</h3>
+        <div style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem">
+          ${(o.messages||[]).map(m=>`
+            <div style="background:var(--bg);border-radius:8px;padding:.4rem .7rem;font-size:.8rem">
+              <span style="font-weight:600">${esc(m.sender_name)}</span>
+              <span style="font-size:.68rem;color:var(--subtle);margin-left:.4rem">${new Date(m.created_at).toLocaleString('ru-RU')}</span>
+              <div style="margin-top:.18rem">${esc(m.message)}</div>
+            </div>`).join('') || '<div style="font-size:.8rem;color:var(--muted)">сообщений нет</div>'}
+        </div>
+      </div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+
+async function adminForceStatus(orderId,status,backPage,backFilter){
+  const reason=prompt(`Причина принудительного изменения статуса на «${status}» (видят обе стороны):`);
+  if(reason===null) return;
+  try{
+    await api(`/admin/orders/${orderId}/status`,'PATCH',{status,note:reason||undefined});
+    toastOk('Статус изменён, обе стороны уведомлены');
+    adminOrderDetail(orderId,parseInt(backPage),backFilter);
+  }catch(e){toastErr(e.message);}
+}
+
+async function adminSendMsg(orderId,backPage,backFilter){
+  const msg=document.getElementById('admin-msg')?.value.trim();
+  if(!msg){toastErr('Введите сообщение');return;}
+  try{
+    await api(`/admin/orders/${orderId}/message`,'POST',{message:msg});
+    toastOk('Сообщение отправлено в чат');
+    document.getElementById('admin-msg').value='';
+    adminOrderDetail(orderId,parseInt(backPage),backFilter);
+  }catch(e){toastErr(e.message);}
 }
 
 async function adminNotify(){
@@ -928,7 +1006,6 @@ async function adminDelSvc(id,title,page=1){
   catch(e){toastErr(e.message);}
 }
 
-/* ── HELPERS ─────────────────────────────────────────────── */
 function showErr(msg,back=false){
   document.getElementById('dc').innerHTML=
     `<div class="dash-content-header"><h2><span>⚠️</span>Ошибка</h2>${back?`<button class="btn btn-ghost btn-sm" onclick="go('orders')">← Назад</button>`:''}</div>`+
