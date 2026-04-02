@@ -200,8 +200,32 @@ function go(sec, extra={}) {
   setActive(sec);
   closeSB();
   document.getElementById('dc').innerHTML = '<div class="loader-wrap" style="padding:4rem 2rem"><div class="spinner"></div></div>';
-  const map = { orders:loadOrders, services:loadServices, balance:loadBalance, notifs:loadNotifs, profile:loadProfile, chat:()=>loadChat(extra.oid), admin:loadAdmin };
-  (map[sec]||loadOrders)();
+
+  const map = { 
+    orders: loadOrders, 
+    services: loadServices, 
+    balance: loadBalance, 
+    notifs: loadNotifs, 
+    profile: loadProfile, 
+    chat: () => loadChat(extra.oid)
+  };
+
+  if (user.role === 'admin') {
+    map.admin = loadAdmin;
+  }
+
+  (map[sec] || loadOrders)();
+}
+
+function loadAdmin() {
+  setContent(
+    `<h2><span>🛡️</span>Администрирование</h2>`,
+    `<div class="empty">
+      <div class="empty-icon">🛡️</div>
+      <h3>Админка</h3>
+      <p>Тут будет управление пользователями, заказами и т.д.</p>
+    </div>`
+  );
 }
 
 let bellOpen = false;
