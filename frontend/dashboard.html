@@ -6,7 +6,6 @@
   <title>Личный кабинет — Skillmart</title>
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
-    /* ── NOTIF BELL ──────────────────────────────── */
     .notif-bell {
       position:fixed; top:.9rem; right:1.2rem; z-index:300;
       display:flex; align-items:center; gap:.5rem;
@@ -59,7 +58,6 @@
     .bell-empty { padding:1.75rem; text-align:center; color:var(--muted); font-size:.82rem; }
     .bell-footer { padding:.55rem 1rem; border-top:1px solid var(--border); }
 
-    /* ── PRICE CHANGE ─────────────────────────────── */
     .price-change-bar {
       background:rgba(245,158,11,.06); border:1.5px solid rgba(245,158,11,.2);
       border-radius:var(--r); padding:.7rem 1rem; margin-top:.75rem;
@@ -69,7 +67,6 @@
     .price-change-bar input { flex:1; min-width:100px; padding:.4rem .7rem; font-size:.84rem; border-radius:8px; height:34px; }
     .price-change-bar textarea { flex:2; min-width:140px; padding:.4rem .7rem; font-size:.8rem; border-radius:8px; min-height:34px; max-height:60px; resize:none; }
 
-    /* ── SIDEBAR BRAND ────────────────────────────── */
     .sb-brand {
       font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800;
       background:linear-gradient(135deg,#6366f1,#8b5cf6);
@@ -86,7 +83,6 @@
     .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:99; }
     .sb-overlay.show { display:block; }
 
-    /* ── AVATAR ───────────────────────────────────── */
     .av-ring {
       width:72px; height:72px; border-radius:18px;
       background:var(--grad); display:flex; align-items:center;
@@ -108,7 +104,6 @@
 <button class="mob-btn" onclick="toggleSB()">☰</button>
 <div class="sb-overlay" id="sb-ov" onclick="closeSB()"></div>
 
-<!-- NOTIFICATION BELL (top right) -->
 <div class="notif-bell" id="bell-wrap">
   <div class="bell-btn" id="bell-btn" onclick="toggleBell()">
     🔔
@@ -145,7 +140,6 @@
   </div>
 </div>
 
-<!-- Service modal -->
 <div class="modal-overlay" id="svc-modal">
   <div class="modal" style="max-width:540px">
     <div class="modal-header"><h3 id="sm-title">Создать услугу</h3><button class="modal-close" onclick="closeSvcModal()">✕</button></div>
@@ -153,11 +147,15 @@
       <div class="form-group"><label>Название</label><input type="text" id="sf-title" placeholder="Краткое описание (мин. 10 символов)"/></div>
       <div class="form-group"><label>Категория</label><select id="sf-cat"></select></div>
       <div class="grid-2">
-        <div class="form-group"><label>Цена (₽)</label><input type="number" id="sf-price" placeholder="1000" min="1"/></div>
-        <div class="form-group"><label>Срок (дней)</label><input type="number" id="sf-days" placeholder="3" min="1"/></div>
+        <div class="form-group"><label>Цена (₽) <span class="form-hint">до 500 000</span></label><input type="number" id="sf-price" placeholder="1000" min="1" max="500000"/></div>
+        <div class="form-group"><label>Срок (дней) <span class="form-hint">до 180</span></label><input type="number" id="sf-days" placeholder="3" min="1" max="180"/></div>
       </div>
       <div class="form-group"><label>Описание</label><textarea id="sf-desc" rows="5" placeholder="Подробно опишите услугу..."></textarea></div>
       <div class="form-group"><label>Теги <span class="form-hint">через запятую</span></label><input type="text" id="sf-tags" placeholder="логотип, дизайн"/></div>
+      <div class="form-group" style="flex-direction:row;align-items:center;gap:.6rem">
+        <input type="checkbox" id="sf-neg" style="width:auto;margin:0"/>
+        <label for="sf-neg" style="margin:0;cursor:pointer">Цена по договорённости</label>
+      </div>
       <div id="sf-err" class="error-msg"></div>
       <button class="btn btn-primary btn-block btn-lg mt-2" id="sf-submit" onclick="submitSvc()">Сохранить</button>
     </div>
@@ -170,16 +168,16 @@ if (!requireAuth()) {}
 const user = Storage.getUser();
 let editSvcId=null, cats=[], pollT=null, bellPoll=null, stars=0;
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
 function buildSB() {
   const av = document.getElementById('sb-av');
   if (user.avatar) { av.innerHTML=`<img src="${esc(user.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`; }
   else             { av.textContent = user.name.charAt(0).toUpperCase(); }
   document.getElementById('sb-name').textContent = user.name;
   document.getElementById('sb-role').textContent = user.role==='customer' ? '🛍️ Заказчик' : '🧑‍💻 Исполнитель';
-  const links = user.role==='customer'
+  const baseLinks = user.role==='customer'
     ? [['orders','📦','Мои заказы'],['balance','💰','Баланс'],['notifs','🔔','Уведомления'],['profile','⚙️','Профиль']]
     : [['services','🎯','Мои услуги'],['orders','📦','Входящие заказы'],['balance','💰','Баланс'],['notifs','🔔','Уведомления'],['profile','⚙️','Профиль']];
+  const links = user.role==='admin' ? [...baseLinks,['admin','🛡️','Администрирование']] : baseLinks;
   document.getElementById('sb-nav').innerHTML =
     links.map(([id,ic,lb]) => `<button class="sb-item" id="si-${id}" onclick="go('${id}')">`+`<span class="ico">${ic}</span>${lb}</button>`).join('')
     +`<div class="sb-sep"></div>`
@@ -192,7 +190,6 @@ function setActive(id) { document.querySelectorAll('.sb-item').forEach(b=>b.clas
 function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sb-ov').classList.toggle('show'); }
 function closeSB()  { document.getElementById('sb').classList.remove('open'); document.getElementById('sb-ov').classList.remove('show'); }
 
-/* ── CONTENT PANE ────────────────────────────────────────── */
 function setContent(hdr, body) {
   document.getElementById('dc').innerHTML =
     `<div class="dash-content-header">${hdr}</div><div class="dash-inner">${body}</div>`;
@@ -203,11 +200,10 @@ function go(sec, extra={}) {
   setActive(sec);
   closeSB();
   document.getElementById('dc').innerHTML = '<div class="loader-wrap" style="padding:4rem 2rem"><div class="spinner"></div></div>';
-  const map = { orders:loadOrders, services:loadServices, balance:loadBalance, notifs:loadNotifs, profile:loadProfile, chat:()=>loadChat(extra.oid) };
+  const map = { orders:loadOrders, services:loadServices, balance:loadBalance, notifs:loadNotifs, profile:loadProfile, chat:()=>loadChat(extra.oid), admin:loadAdmin };
   (map[sec]||loadOrders)();
 }
 
-/* ── NOTIFICATION BELL ───────────────────────────────────── */
 let bellOpen = false;
 async function refreshBell() {
   try {
@@ -246,7 +242,6 @@ function relTime(s) {
 }
 document.addEventListener('click', e => { if(bellOpen && !document.getElementById('bell-wrap').contains(e.target)) closeBell(); });
 
-/* ── ORDERS ──────────────────────────────────────────────── */
 async function loadOrders() {
   try {
     const res = await api('/orders?limit=50'); if(!res) return;
@@ -294,7 +289,6 @@ function renderOList(data,f) {
     </div>`).join('');
 }
 
-/* ── CHAT ────────────────────────────────────────────────── */
 async function loadChat(oid) {
   if (!oid) { loadOrders(); return; }
   try {
@@ -320,12 +314,12 @@ async function loadChat(oid) {
         </div>
       </div>
 
-      <!-- Price change panel (only in active orders) -->
-      ${!['completed','cancelled'].includes(order.status) ? `
+      <!-- панель изменения цены — только для исполнителя -->
+      ${!['completed','cancelled'].includes(order.status) && user.role==='executor' ? `
       <div class="price-change-bar">
-        <label>💸 Изменить цену:</label>
-        <input type="number" id="new-price" placeholder="${parseFloat(order.total_price).toFixed(0)}" min="1" style="max-width:120px"/>
-        <textarea id="price-note" placeholder="Комментарий (необязательно)" rows="1"></textarea>
+        <label>💸 Предложить цену:</label>
+        <input type="number" id="new-price" placeholder="${parseFloat(order.total_price).toFixed(0)}" min="1" max="500000" style="max-width:120px"/>
+        <textarea id="price-note" placeholder="Комментарий" rows="1"></textarea>
         <button class="btn btn-outline btn-sm" onclick="changePrice('${oid}')">Применить</button>
       </div>` : ''}
 
@@ -362,7 +356,6 @@ async function fetchMsgs(oid, quiet=false) {
       ? data.map(m=>{
           const mine=m.sender_id===user.id;
           const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-          // Price change messages get special styling
           const isPrice = m.message.startsWith('💰') || m.message.startsWith('💸');
           return `<div class="chat-msg ${mine?'mine':'theirs'}" ${isPrice?'style="align-self:center;max-width:90%"':''}>
             ${!mine&&!isPrice?`<div class="chat-sender">${esc(m.sender_name)}</div>`:''}
@@ -396,7 +389,6 @@ async function changePrice(oid){
   try {
     const res = await api('/orders/'+oid+'/price','PATCH',{price:v, note:note||undefined});
     toastOk('Цена изменена!');
-    // Update displayed price
     const el=document.getElementById('cur-price');
     if(el) el.textContent='💰 '+fmtPrice(v);
     document.getElementById('new-price').value='';
@@ -427,7 +419,6 @@ async function sendReview(oid){
   catch(e){toastErr(e.message);}
 }
 
-/* ── SERVICES ────────────────────────────────────────────── */
 async function loadServices(){
   try{
     const res=await api('/services?limit=100'); if(!res) return;
@@ -461,7 +452,7 @@ async function openSvcModal(id=null){
   if(!cats.length){ try{ cats=await api('/categories')||[]; }catch{} }
   const csel=document.getElementById('sf-cat');
   csel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
-  if(id){ try{ const s=await api('/services/'+id); document.getElementById('sf-title').value=s.title; document.getElementById('sf-price').value=s.price; document.getElementById('sf-days').value=s.deadline; document.getElementById('sf-desc').value=s.description; document.getElementById('sf-tags').value=(s.tags||[]).join(', '); csel.value=s.category_id; }catch(e){toastErr('Не загрузить');return;} }
+  if(id){ try{ const s=await api('/services/'+id); document.getElementById('sf-title').value=s.title; document.getElementById('sf-price').value=s.price; document.getElementById('sf-days').value=s.deadline; document.getElementById('sf-desc').value=s.description; document.getElementById('sf-tags').value=(s.tags||[]).join(', '); csel.value=s.category_id; document.getElementById('sf-neg').checked=!!s.is_negotiable; }catch(e){toastErr('Не загрузить');return;} }
   else { ['sf-title','sf-price','sf-days','sf-desc','sf-tags'].forEach(i=>{document.getElementById(i).value='';}); }
   document.getElementById('svc-modal').classList.add('open');
 }
@@ -475,13 +466,12 @@ async function submitSvc(){
   if(!price||price<1){errEl.textContent='Укажите цену';errEl.classList.add('show');return;}
   if(!days||days<1){errEl.textContent='Укажите срок';errEl.classList.add('show');return;}
   const btn=document.getElementById('sf-submit'); btn.disabled=true; btn.textContent='Сохраняем...';
-  try{ const body={title,description:desc,price,deadline:days,category_id:catId,tags}; editSvcId?await api('/services/'+editSvcId,'PUT',body):await api('/services','POST',body); toastOk(editSvcId?'Обновлено!':'Услуга создана!'); closeSvcModal(); loadServices(); }
+  try{ const body={title,description:desc,price,deadline:days,category_id:catId,tags,is_negotiable:document.getElementById('sf-neg')?.checked||false}; editSvcId?await api('/services/'+editSvcId,'PUT',body):await api('/services','POST',body); toastOk(editSvcId?'Обновлено!':'Услуга создана!'); closeSvcModal(); loadServices(); }
   catch(e){ errEl.textContent=e.message||'Ошибка'; errEl.classList.add('show'); }
   finally{ btn.disabled=false; btn.textContent='Сохранить'; }
 }
 async function delSvc(id,title){ if(!confirm(`Удалить "${title}"?`)) return; try{ await api('/services/'+id,'DELETE'); toastOk('Удалено'); loadServices(); }catch(e){toastErr(e.message);} }
 
-/* ── BALANCE ─────────────────────────────────────────────── */
 async function loadBalance(){
   try{
     const res=await api('/balance'); if(!res) return;
@@ -516,7 +506,6 @@ async function loadBalance(){
 }
 async function doDeposit(){ const v=parseFloat(document.getElementById('dep').value); if(!v||v<100){toastErr('Мин. 100 ₽');return;} try{ await api('/balance/deposit','POST',{amount:v}); toastOk('Пополнено на '+fmtPrice(v)); loadBalance(); }catch(e){toastErr(e.message);} }
 
-/* ── NOTIFICATIONS ───────────────────────────────────────── */
 async function loadNotifs(){
   try{
     const res=await api('/notifications'); if(!res) return;
@@ -540,7 +529,6 @@ async function loadNotifs(){
 function nIco(t){const m={order_created:'📦',order_accepted:'🔄',order_completed:'✅',order_cancelled:'❌',new_message:'💬',new_review:'⭐',payment_received:'💰',price_changed:'💸'};return m[t]||'🔔';}
 async function markAllRead(){try{await api('/notifications/read-all','PATCH');toastOk('Готово');loadNotifs();refreshBell();}catch(e){toastErr(e.message);}}
 
-/* ── PROFILE ─────────────────────────────────────────────── */
 async function loadProfile(){
   try{
     const res=await api('/users/me/full'); if(!res) return;
@@ -665,7 +653,6 @@ function onAvatar(event){
   reader.onload=e=>{
     const b64=e.target.result;
     document.getElementById('av-preview').innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover"/>`;
-    // update sidebar too
     const sbAv=document.getElementById('sb-av');
     sbAv.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;
     window._av=b64;
@@ -721,17 +708,15 @@ async function changePass(){
   catch(e){toastErr(e.message);}
 }
 
-/* ── HELPERS ─────────────────────────────────────────────── */
 function showErr(msg,back=false){
   document.getElementById('dc').innerHTML=
     `<div class="dash-content-header"><h2><span>⚠️</span>Ошибка</h2>${back?`<button class="btn btn-ghost btn-sm" onclick="go('orders')">← Назад</button>`:''}</div>`+
     `<div class="dash-inner"><div class="empty"><div class="empty-icon">⚠️</div><h3>Не удалось загрузить</h3><p>${esc(msg||'Попробуйте позже')}</p></div></div>`;
 }
 
-/* ── INIT ────────────────────────────────────────────────── */
 buildSB();
 refreshBell();
-bellPoll = setInterval(refreshBell, 12000); // refresh bell every 12s
+bellPoll = setInterval(refreshBell, 12000);
 const chatParam=qp('chat');
 if(chatParam) go('chat',{oid:chatParam});
 else go(user.role==='customer'?'orders':'services');
