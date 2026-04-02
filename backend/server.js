@@ -19,19 +19,18 @@ const ALLOWED = [
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
+    const isVercel = origin && origin.endsWith('.vercel.app');
 
-    const isVercelPreview = origin.endsWith('.vercel.app');
-    const isAllowed = ALLOWED.includes(origin);
-
-    if (isVercelPreview || isAllowed) {
+    if (!origin || ALLOWED.includes(origin) || isVercel) {
       return cb(null, true);
     }
 
-    console.warn(`[cors] отклонён: ${origin}`);
+    console.warn('[cors] запрещён:', origin);
     return cb(null, false);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
 }));
 
 app.options('*', cors());
