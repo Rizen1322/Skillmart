@@ -11,25 +11,23 @@ const PORT = process.env.PORT || 3000;
 const ALLOWED = [
   'https://2-nu-eight.vercel.app',
   'https://2-h1b61l0p4-rizens-projects-3d6c042b.vercel.app',
-  'https://skillmart-production-eb9d.up.railway.app',
+  'https://2-production-ab08.up.railway.app',
   'http://localhost:8080',
   'http://localhost:3000',
   'http://localhost:5500',
 ];
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED.includes(origin)) return cb(null, true);
+    console.warn(`[cors] отклонён запрос от: "${origin}" — не входит в список разрешённых: ${ALLOWED.join(', ')}`);
+    cb(new Error(`cors: источник ${origin} не разрешён`));
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
+}));
+app.options('*', cors());
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(express.json({ limit: '10mb' }));
