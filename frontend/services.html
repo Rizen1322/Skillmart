@@ -22,14 +22,13 @@
   </style>
 </head>
 <body>
-<!-- Compact header, no full nav -->
 <div class="page-header">
   <div class="page-header-left">
     <a href="/" class="back-logo">Skillmart</a>
     <div class="page-header-sep"></div>
     <h1>Каталог услуг</h1>
   </div>
-  <div class="page-header-right" id="nav-actions">
+  <div class="page-header-right" id="nav-actions" style="margin-right:.5rem">
     <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
     <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Регистрация</a>
   </div>
@@ -43,7 +42,6 @@
   <div class="chip-row" id="chips"></div>
 
   <div class="catalog-layout">
-    <!-- Filter sidebar -->
     <div class="filter-panel">
       <h3>Фильтры</h3>
       <div class="filter-group">
@@ -71,7 +69,6 @@
       <button class="btn btn-ghost btn-block" onclick="resetF()">Сбросить</button>
     </div>
 
-    <!-- Results -->
     <div class="catalog-main">
       <div class="results-bar">
         <span class="results-count" id="cnt">Загрузка...</span>
@@ -138,7 +135,6 @@ async function load(page = 1) {
   const fmax = document.getElementById('fmax').value;
   const sort = document.getElementById('fsort').value;
 
-  // Build URL manually to ensure query params are properly passed
   let url = '/services?page=' + page + '&limit=12&sort=' + encodeURIComponent(sort);
   if (q)    url += '&search='    + encodeURIComponent(q);
   if (cat)  url += '&category='  + encodeURIComponent(cat);
@@ -206,9 +202,8 @@ function resetF() {
   load(1);
 }
 
-// Update nav
 if (Storage.user) {
-  document.getElementById('nav-actions').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+  document.getElementById('nav-actions').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm" style="margin-right:.5rem">Кабинет</a>`;
 }
 
 document.getElementById('q').addEventListener('input', debounce(() => load(1), 450));
