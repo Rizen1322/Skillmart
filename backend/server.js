@@ -19,14 +19,17 @@ const ALLOWED = [
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || ALLOWED.includes(origin)) return cb(null, true);
-    console.warn(`[cors] отклонён запрос от: "${origin}" — не входит в список разрешённых: ${ALLOWED.join(', ')}`);
-    cb(new Error(`cors: источник ${origin} не разрешён`));
+    if (!origin) return cb(null, true);
+
+    if (ALLOWED.includes(origin)) {
+      return cb(null, true);
+    }
+
+    return cb(null, false);
   },
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true
 }));
+
 app.options('*', cors());
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
