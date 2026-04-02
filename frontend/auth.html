@@ -52,12 +52,11 @@
       <button class="toggle-btn" id="tab-r" onclick="sw('register')">Регистрация</button>
     </div>
 
-    <!-- LOGIN -->
     <div class="auth-form" id="f-login">
       <h2 class="auth-heading">С возвращением!</h2>
       <p class="auth-sub">Войдите в аккаунт Skillmart</p>
       <form onsubmit="doLogin(event)">
-        <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="you@example.com" required autocomplete="email"/></div>
+        <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="you@gmail.com" required autocomplete="email"/></div>
         <div class="form-group"><label>Пароль</label><input type="password" id="l-pass" placeholder="••••••••" required autocomplete="current-password"/></div>
         <div id="l-err" class="error-msg"></div>
         <button type="submit" class="btn btn-primary btn-block btn-lg mt-2 spin-btn" id="l-btn" style="position:relative">
@@ -67,7 +66,6 @@
       <div class="auth-foot">Нет аккаунта? <a href="#" onclick="sw('register');return false">Зарегистрируйтесь</a></div>
     </div>
 
-    <!-- REGISTER -->
     <div class="auth-form" id="f-reg">
       <h2 class="auth-heading">Создайте аккаунт</h2>
       <p class="auth-sub">Займёт меньше минуты</p>
@@ -87,7 +85,7 @@
         </div>
         <div class="form-group"><label>Имя</label><input type="text" id="r-name" placeholder="Иван Иванов" required autocomplete="name"/></div>
         <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com" required autocomplete="email"/></div>
-        <div class="form-group"><label>Пароль <span style="font-weight:400;color:var(--muted)">мин. 6 символов</span></label><input type="password" id="r-pass" placeholder="••••••••" minlength="6" required autocomplete="new-password"/></div>
+        <div class="form-group"><label>Пароль <span style="font-weight:400;color:var(--muted)">мин. 8 симв., заглавная, цифра, спецсимвол</span></label><input type="password" id="r-pass" placeholder="Пример: Mypass1!" minlength="8" required autocomplete="new-password"/></div>
         <div id="r-err" class="error-msg"></div>
         <button type="submit" class="btn btn-primary btn-block btn-lg mt-2 spin-btn" id="r-btn" style="position:relative">
           <span class="bt">Создать аккаунт</span><div class="spinner sp" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
