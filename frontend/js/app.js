@@ -1,7 +1,6 @@
 'use strict';
-const API = 'https://2-production-ab08.up.railway.app/api';
+const API = 'https://2-production-0ac3.up.railway.app/api';
 
-/* ── Storage ──────────────────────────────────────────────── */
 const Storage = {
   get token()  { return localStorage.getItem('sm_tk'); },
   set token(v) { v ? localStorage.setItem('sm_tk', v) : localStorage.removeItem('sm_tk'); },
@@ -16,12 +15,10 @@ const Storage = {
   clearUser()  { localStorage.removeItem('sm_u'); },
 };
 
-/* ── Auth ─────────────────────────────────────────────────── */
 function logout()     { Storage.clear(); location.href = '/'; }
 function requireAuth(){ if (!Storage.token) { location.href = '/auth.html'; return false; } return true; }
 function ifAuth()     { if (Storage.token) location.href = '/dashboard.html'; }
 
-/* ── API ──────────────────────────────────────────────────── */
 async function api(path, method = 'GET', body = null) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (Storage.token) opts.headers['Authorization'] = 'Bearer ' + Storage.token;
@@ -34,7 +31,6 @@ async function api(path, method = 'GET', body = null) {
   return data;
 }
 
-/* ── Toast ────────────────────────────────────────────────── */
 function toast(msg, type = 'info', dur = 3800) {
   let w = document.getElementById('toast-wrap');
   if (!w) { w = Object.assign(document.createElement('div'), { id: 'toast-wrap' }); document.body.appendChild(w); }
@@ -47,7 +43,6 @@ function toast(msg, type = 'info', dur = 3800) {
 const toastOk  = m => toast(m, 'success');
 const toastErr = m => toast(m, 'error');
 
-/* ── Formatters ──────────────────────────────────────────── */
 function esc(s)      { const d = document.createElement('div'); d.textContent = String(s ?? ''); return d.innerHTML; }
 function fmtPrice(p) { const n = parseFloat(p); return isNaN(n) ? '—' : new Intl.NumberFormat('ru-RU').format(n) + ' ₽'; }
 function fmtDate(s)  { return s ? new Date(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}) : ''; }
@@ -62,11 +57,8 @@ function qp(k)   { return new URLSearchParams(location.search).get(k); }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 function showLoader(el) { if (el) el.innerHTML = '<div class="loader-wrap"><div class="spinner"></div></div>'; }
 
-const catIcons = { design:'🎨', programming:'💻', writing:'✍️', marketing:'📣', video:'🎬', other:'🔧' };
+const catIcons = { design:'🎨', programming:'💻', writing:'✍️', marketing:'📣', video:'🎬', photo:'📸', audio:'🎵', animation:'🎭', accounting:'📊', legal:'⚖️', education:'📚', ai:'🤖', mobile:'📱', games:'🎮', other:'🔧' };
 
-/* ══════════════════════════════════════════════════════════
-   REAL-TIME NOTIFICATION BELL  (injected on every page)
-══════════════════════════════════════════════════════════ */
 let _nPoll = null;
 let _nLast = 0;
 let _nOpen = false;
