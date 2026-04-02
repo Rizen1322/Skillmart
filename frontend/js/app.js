@@ -1,5 +1,5 @@
 'use strict';
-const API = 'https://2-production-0ac3.up.railway.app/api';
+const API = 'https://2-production-ab08.up.railway.app/api';
 
 const Storage = {
   get token()  { return localStorage.getItem('sm_tk'); },
