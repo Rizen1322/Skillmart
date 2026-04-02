@@ -20,7 +20,6 @@
     .topbar-cat  { padding:.34rem .8rem; border-radius:100px; font:500 .8rem 'Inter',sans-serif; color:var(--muted); transition:all .18s; text-decoration:none; display:inline-block; }
     .topbar-cat:hover { color:var(--text); background:rgba(0,0,0,.05); }
 
-    /* hero */
     .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 5vw 80px; position:relative; overflow:hidden; }
     .orb { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
     .orb1 { width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);top:-100px;left:-80px;animation:flt 9s ease-in-out infinite; }
@@ -42,8 +41,8 @@
     .sec-sub { color:var(--muted);max-width:480px;font-size:.92rem;line-height:1.72; }
     .tc { text-align:center; } .tc .sec-badge { justify-content:center; } .tc .sec-sub { margin:0 auto; }
 
-    .cat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;margin-top:2.5rem;justify-content:center; }
-    .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.25rem .9rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:block;color:var(--text); }
+    .cat-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-top:2.5rem; }
+    .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.1rem .75rem 1rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;color:var(--text); }
     .cat-card:hover { border-color:rgba(99,102,241,.3);transform:translateY(-3px);box-shadow:0 12px 36px rgba(99,102,241,.12);background:rgba(99,102,241,.03); }
     .cat-emoji { font-size:1.75rem;margin-bottom:.5rem;display:block; }
     .cat-name  { font:600 .82rem 'Inter',sans-serif; }
@@ -133,7 +132,7 @@
     <h2 class="sec-title">Чем может помочь Skillmart?</h2>
     <p class="sec-sub">Всё необходимое для вашего бизнеса и проектов — в одном месте.</p>
   </div>
-  <div class="cat-grid reveal" style="justify-items:center">
+  <div class="cat-grid reveal">
     <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-design">...</div></a>
     <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-programming">...</div></a>
     <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-writing">...</div></a>
@@ -178,7 +177,7 @@
 <section class="sec dark-sec">
   <div class="tc">
     <div class="sec-badge">Почему Skillmart</div>
-    <h2 class="sec-title">Безопасно. Быстро. Качественно.</h2>
+    <h2 class="sec-title">Безопаcно. Быстро. Качественно.</h2>
     <p class="sec-sub">Мы берём лучшее у ведущих мировых платформ.</p>
   </div>
   <div class="trust-grid reveal">
