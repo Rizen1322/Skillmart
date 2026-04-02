@@ -1,7 +1,5 @@
--- Skillmart schema for MySQL 8.0+
 SET NAMES utf8mb4;
 
--- USERS
 CREATE TABLE IF NOT EXISTS users (
   id            CHAR(36)     NOT NULL,
   name          VARCHAR(100) NOT NULL,
@@ -18,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
   KEY idx_users_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- CATEGORIES
 CREATE TABLE IF NOT EXISTS categories (
   id          INT          NOT NULL AUTO_INCREMENT,
   name        VARCHAR(100) NOT NULL,
@@ -47,7 +44,6 @@ INSERT IGNORE INTO categories (name, slug, icon, description, sort_order) VALUES
   ('Игры',             'games',        '🎮', 'Разработка игр, моддинг, геймдизайн',          14),
   ('Другое',           'other',        '🔧', 'Прочие цифровые услуги',                       15);
 
--- SERVICES
 CREATE TABLE IF NOT EXISTS services (
   id            CHAR(36)       NOT NULL,
   executor_id   CHAR(36)       NOT NULL,
@@ -72,7 +68,6 @@ CREATE TABLE IF NOT EXISTS services (
   CONSTRAINT fk_svc_cat  FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ORDERS
 CREATE TABLE IF NOT EXISTS orders (
   id            CHAR(36)      NOT NULL,
   service_id    CHAR(36)      NOT NULL,
@@ -94,7 +89,6 @@ CREATE TABLE IF NOT EXISTS orders (
   CONSTRAINT fk_ord_exec FOREIGN KEY (executor_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ORDER STATUS LOG
 CREATE TABLE IF NOT EXISTS order_status_log (
   id         INT      NOT NULL AUTO_INCREMENT,
   order_id   CHAR(36) NOT NULL,
@@ -108,7 +102,6 @@ CREATE TABLE IF NOT EXISTS order_status_log (
   CONSTRAINT fk_log_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- MESSAGES
 CREATE TABLE IF NOT EXISTS messages (
   id         CHAR(36)     NOT NULL,
   order_id   CHAR(36)     NOT NULL,
@@ -122,7 +115,6 @@ CREATE TABLE IF NOT EXISTS messages (
   CONSTRAINT fk_msg_sender FOREIGN KEY (sender_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- REVIEWS
 CREATE TABLE IF NOT EXISTS reviews (
   id          CHAR(36)     NOT NULL,
   order_id    CHAR(36)     NOT NULL,
@@ -143,7 +135,6 @@ CREATE TABLE IF NOT EXISTS reviews (
   CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Auto-update service rating after review INSERT or UPDATE
 CREATE TRIGGER IF NOT EXISTS trg_svc_rating_ins
 AFTER INSERT ON reviews FOR EACH ROW
 BEGIN
@@ -162,7 +153,6 @@ BEGIN
   WHERE id = NEW.service_id;
 END;
 
--- BALANCES
 CREATE TABLE IF NOT EXISTS balances (
   id         INT           NOT NULL AUTO_INCREMENT,
   user_id    CHAR(36)      NOT NULL,
@@ -173,7 +163,6 @@ CREATE TABLE IF NOT EXISTS balances (
   CONSTRAINT fk_bal_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- TRANSACTIONS
 CREATE TABLE IF NOT EXISTS transactions (
   id          CHAR(36)      NOT NULL,
   user_id     CHAR(36)      NOT NULL,
@@ -189,7 +178,6 @@ CREATE TABLE IF NOT EXISTS transactions (
   CONSTRAINT fk_tx_order FOREIGN KEY (order_id) REFERENCES orders(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- NOTIFICATIONS
 CREATE TABLE IF NOT EXISTS notifications (
   id         CHAR(36)     NOT NULL,
   user_id    CHAR(36)     NOT NULL,
@@ -204,7 +192,6 @@ CREATE TABLE IF NOT EXISTS notifications (
   CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- EXECUTOR PROFILES
 CREATE TABLE IF NOT EXISTS executor_profiles (
   user_id        CHAR(36)      NOT NULL,
   availability   ENUM('available','busy','vacation') NOT NULL DEFAULT 'available',
