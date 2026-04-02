@@ -20,7 +20,8 @@ const ALLOWED = [
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED.includes(origin)) return cb(null, true);
-    cb(new Error('not allowed by cors'));
+    console.warn(`[cors] отклонён запрос от: "${origin}" — не входит в список разрешённых: ${ALLOWED.join(', ')}`);
+    cb(new Error(`cors: источник ${origin} не разрешён`));
   },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
