@@ -18,12 +18,34 @@ const ALLOWED_DOMAINS = [
 ];
 
 const validateEmail = (email) => {
-  const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain) return false;
+  // базовая проверка
+  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) return false;
+
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+
+  const domain = parts[1].toLowerCase();
+  const domainParts = domain.split('.');
+
+  // домен должен иметь минимум 2 части и TLD от 2 символов
+  if (domainParts.length < 2) return false;
+  const tld = domainParts[domainParts.length - 1];
+  if (tld.length < 2) return false;
+
+  // каждая часть домена не должна быть просто цифрами
+  const localPart = domainParts.slice(0, -1).join('.');
+  if (/^\d+$/.test(localPart)) return false;
+
+  // должен быть буквами
+  if (!/^[a-zA-Z]+$/.test(tld)) return false;
+
+  // разрешённые домены без дополнительных проверок
   if (ALLOWED_DOMAINS.includes(domain)) return true;
-  // разрешаем корпоративные/студенческие домены с известными TLD
-  const tlds = ['.com','.ru','.net','.org','.io','.edu','.co','.dev','.app'];
-  return tlds.some(t => domain.endsWith(t)) && domain.includes('.');
+
+  // домен должен выглядеть реальным
+  const validTlds = ['com','ru','net','org','io','edu','co','dev','app','me','info','biz','pro','online','site','store'];
+  return validTlds.includes(tld);
 };
 
 const validatePassword = (pwd) => {
