@@ -200,32 +200,8 @@ function go(sec, extra={}) {
   setActive(sec);
   closeSB();
   document.getElementById('dc').innerHTML = '<div class="loader-wrap" style="padding:4rem 2rem"><div class="spinner"></div></div>';
-
-  const map = { 
-    orders: loadOrders, 
-    services: loadServices, 
-    balance: loadBalance, 
-    notifs: loadNotifs, 
-    profile: loadProfile, 
-    chat: () => loadChat(extra.oid)
-  };
-
-  if (user.role === 'admin') {
-    map.admin = loadAdmin;
-  }
-
-  (map[sec] || loadOrders)();
-}
-
-function loadAdmin() {
-  setContent(
-    `<h2><span>🛡️</span>Администрирование</h2>`,
-    `<div class="empty">
-      <div class="empty-icon">🛡️</div>
-      <h3>Админка</h3>
-      <p>Тут будет управление пользователями, заказами и т.д.</p>
-    </div>`
-  );
+  const map = { orders:loadOrders, services:loadServices, balance:loadBalance, notifs:loadNotifs, profile:loadProfile, chat:()=>loadChat(extra.oid), admin:loadAdmin };
+  (map[sec]||loadOrders)();
 }
 
 let bellOpen = false;
@@ -380,6 +356,7 @@ async function fetchMsgs(oid, quiet=false) {
       ? data.map(m=>{
           const mine=m.sender_id===user.id;
           const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+          // Price change messages get special styling
           const isPrice = m.message.startsWith('💰') || m.message.startsWith('💸');
           return `<div class="chat-msg ${mine?'mine':'theirs'}" ${isPrice?'style="align-self:center;max-width:90%"':''}>
             ${!mine&&!isPrice?`<div class="chat-sender">${esc(m.sender_name)}</div>`:''}
@@ -610,7 +587,7 @@ async function loadProfile(){
         <button class="btn btn-outline" onclick="changePass()">Изменить пароль</button>
       </div>
 
-      <!-- SOCIALS (both roles) -->
+      <!-- SOCIALS -->
       <div class="form-box mb-2">
         <h3>🔗 Социальные сети</h3>
         <div class="grid-2">
@@ -645,7 +622,7 @@ async function loadProfile(){
           <div class="form-group"><label>Специализация</label><input type="text" id="ep-spec" value="${esc(ep.specialization||'')}" placeholder="UI/UX дизайнер..."/></div>
           <div class="form-group"><label>Ставка ₽/час <span class="form-hint">необязательно</span></label><input type="number" id="ep-rate" value="${ep.hourly_rate||''}" placeholder="1500" min="0"/></div>
         </div>
-        <div class="form-group"><label>Языки <span class="form-hint">через запятую</span></label><input type="text" id="ep-langs" value="${esc(langsVal)}" placeholder="Русский, English..."/></div>
+        <div class="form-group"><label>Языки <span class="form-hint">через запятую</span></label><input type="text" id="ep-langs" value="${esc(langsVal)}" placeholder="Русский, English..." maxlength="200"/></div>
         <button class="btn btn-primary" onclick="saveFull()">Сохранить статус</button>
       </div>
 
@@ -653,15 +630,15 @@ async function loadProfile(){
       <div class="form-box mb-2">
         <h3>🛠 Навыки</h3>
         <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый навык на новой строке: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Figma:5</code> (уровень 1–5)</p>
-        <textarea id="ep-skills" rows="6" placeholder="Figma:5&#10;Photoshop:4&#10;HTML/CSS:4&#10;React:3">${esc(skillsVal)}</textarea>
+        <textarea id="ep-skills" rows="6" placeholder="Figma:5&#10;Photoshop:4&#10;HTML/CSS:4&#10;React:3" maxlength="600">${esc(skillsVal)}</textarea>
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить навыки</button>
       </div>
 
       <!-- PORTFOLIO -->
       <div class="form-box">
         <h3>🎨 Портфолио</h3>
-        <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый проект: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Название|URL|Описание</code></p>
-        <textarea id="ep-port" rows="5" placeholder="Сайт для кафе|https://behance.net/...|Редизайн">${esc(portVal)}</textarea>
+        <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый проект: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Название|URL|Описание</code> · макс. 5 проектов</p>
+        <textarea id="ep-port" rows="5" placeholder="Сайт для кафе|https://behance.net/...|Редизайн" maxlength="1000">${esc(portVal)}</textarea>
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить портфолио</button>
       </div>`:''}
     `);
@@ -709,14 +686,14 @@ async function saveFull(){
   if(isExec){
     body.availability=document.getElementById('ep-avail')?.value;
     body.response_time=document.getElementById('ep-resp')?.value;
-    body.specialization=document.getElementById('ep-spec')?.value.trim()||null;
+    body.specialization=(document.getElementById('ep-spec')?.value.trim()||'').slice(0,80)||null;
     body.hourly_rate=parseFloat(document.getElementById('ep-rate')?.value)||null;
     const langsRaw=document.getElementById('ep-langs')?.value||'';
     body.languages=langsRaw?langsRaw.split(',').map(l=>l.trim()).filter(Boolean):[];
     const skillsRaw=document.getElementById('ep-skills')?.value||'';
-    body.skills=skillsRaw?skillsRaw.split('\n').filter(l=>l.trim()).map(l=>{const[nm,lv]=l.split(':');return nm?.trim()?{name:nm.trim(),level:Math.min(5,Math.max(1,+lv||3))}:null}).filter(Boolean):[];
+    body.skills=skillsRaw?skillsRaw.split('\n').filter(l=>l.trim()).slice(0,12).map(l=>{const[nm,lv]=l.split(':');return nm?.trim()?{name:nm.trim().slice(0,30),level:Math.min(5,Math.max(1,+lv||3))}:null}).filter(Boolean):[];
     const portRaw=document.getElementById('ep-port')?.value||'';
-    body.portfolio=portRaw?portRaw.split('\n').filter(l=>l.trim()).map(l=>{const p=l.split('|');return p[0]?.trim()&&p[1]?.trim()?{title:p[0].trim(),url:p[1].trim(),description:p[2]?.trim()||''}:null}).filter(Boolean):[];
+    body.portfolio=portRaw?portRaw.split('\n').filter(l=>l.trim()).slice(0,5).map(l=>{const p=l.split('|');return p[0]?.trim()&&p[1]?.trim()?{title:p[0].trim().slice(0,50),url:p[1].trim(),description:(p[2]?.trim()||'').slice(0,100)}:null}).filter(Boolean):[];
   }
   try{
     const u=await api('/users/me','PUT',body);
@@ -732,6 +709,226 @@ async function changePass(){
   catch(e){toastErr(e.message);}
 }
 
+
+async function loadAdmin(){
+  if(user.role!=='admin'){showErr('Доступ запрещён');return;}
+  try{
+    const [stats,users,orders] = await Promise.all([
+      api('/admin/stats'),
+      api('/admin/users?limit=8'),
+      api('/admin/orders?limit=8'),
+    ]);
+    if(!stats) return;
+    const f = n => new Intl.NumberFormat('ru-RU').format(parseFloat(n)||0);
+    setContent(`<h2><span>🛡️</span>Администрирование</h2>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="loadAdmin()">🔄 Обновить</button>
+        <button class="btn btn-outline btn-sm" onclick="adminUsers()">👥 Пользователи</button>
+        <button class="btn btn-outline btn-sm" onclick="adminServices()">🛍 Услуги</button>
+        <button class="btn btn-outline btn-sm" onclick="adminOrders()">📦 Заказы</button>
+        <button class="btn btn-outline btn-sm" onclick="adminNotify()">📢 Уведомление всем</button>
+      </div>`,
+      `<div class="stat-cards" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));margin-bottom:1.5rem">
+        ${[
+          ['👤','Заказчики',stats.customers],
+          ['🧑‍💻','Исполнители',stats.executors],
+          ['🛍️','Услуг',stats.active_services],
+          ['📦','Заказов',stats.total_orders],
+          ['✅','Выполнено',stats.completed_orders],
+          ['❌','Отменено',stats.cancelled_orders],
+          ['⚡','Активных',stats.active_orders],
+          ['⭐','Отзывов',stats.total_reviews],
+          ['🚫','Заблок.',stats.blocked_users],
+          ['💰','Баланс',f(stats.total_balance)+' ₽'],
+          ['👋','Новых сегодня',stats.new_users_today],
+          ['🛒','Заказов сегодня',stats.new_orders_today],
+        ].map(([ico,lbl,val])=>`<div class="stat-card"><div class="stat-card-ico">${ico}</div><div class="stat-card-val">${val}</div><div class="stat-card-lbl">${lbl}</div></div>`).join('')}
+      </div>
+      <div class="form-box mb-2">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <h3 style="margin:0">Последние пользователи</h3>
+          <button class="btn btn-outline btn-sm" onclick="adminUsers()">Все →</button>
+        </div>
+        ${(users?.data||[]).map(u=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border)">
+            <div>
+              <span style="font-weight:600;font-size:.86rem">${esc(u.name)}</span>
+              <span class="badge badge-purple" style="margin-left:.3rem">${u.role}</span>
+              ${u.is_active?'':'<span class="badge badge-red" style="margin-left:.3rem">заблок.</span>'}
+              <div style="font-size:.72rem;color:var(--muted)">${esc(u.email)} · баланс: ${fmtPrice(u.balance)}</div>
+            </div>
+            <div style="display:flex;gap:.35rem">
+              <button class="btn btn-outline btn-sm" onclick="adminToggleUser('${u.id}','${esc(u.name).replace(/'/g,"\'")}')">${u.is_active?'🚫':'✅'}</button>
+              <button class="btn btn-outline btn-sm" onclick="adminBalanceUser('${u.id}','${esc(u.name).replace(/'/g,"\'")}')">💰</button>
+              <button class="btn btn-outline btn-sm" onclick="adminSetRole('${u.id}','${esc(u.name).replace(/'/g,"\'")}','${u.role}')">🔑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="form-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem">
+          <h3 style="margin:0">Последние заказы</h3>
+          <button class="btn btn-outline btn-sm" onclick="adminOrders()">Все →</button>
+        </div>
+        ${(orders?.data||[]).map(o=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border)">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.service_title)}</div>
+              <div style="font-size:.72rem;color:var(--muted)">${esc(o.customer_name)} → ${esc(o.executor_name)} · ${fmtPrice(o.total_price)}</div>
+            </div>
+            <div style="margin-left:.75rem;flex-shrink:0">${fmtStatus(o.status)}</div>
+          </div>`).join('')}
+      </div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+
+async function adminUsers(page=1,search=''){
+  try{
+    const url=`/admin/users?limit=15&page=${page}${search?'&search='+encodeURIComponent(search):''}`;
+    const res=await api(url);
+    if(!res) return;
+    const total=res.pagination?.total||0;
+    const pages=Math.ceil(total/15)||1;
+    setContent(`<h2><span>👥</span>Пользователи <span style="font-size:.8rem;color:var(--muted);font-weight:400">${total} всего</span></h2>
+      <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">← Назад</button>`,
+      `<div class="form-box mb-2" style="padding:.75rem 1rem">
+        <div style="display:flex;gap:.5rem">
+          <input type="text" id="uq" placeholder="Поиск по имени или email" value="${esc(search)}" style="flex:1" onkeydown="if(event.key==='Enter') adminUsers(1,document.getElementById('uq').value)"/>
+          <button class="btn btn-primary btn-sm" onclick="adminUsers(1,document.getElementById('uq').value)">Найти</button>
+        </div>
+      </div>
+      <div class="items-list">
+        ${res.data.map(u=>`
+          <div class="order-card" style="flex-direction:column;align-items:flex-start;gap:.3rem">
+            <div style="display:flex;width:100%;justify-content:space-between;align-items:center;gap:.5rem">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:.86rem">${esc(u.name)}
+                  <span class="badge badge-purple">${u.role}</span>
+                  ${u.is_active?'':'<span class="badge badge-red">заблок.</span>'}
+                </div>
+                <div style="font-size:.73rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  ${esc(u.email)} · баланс: ${fmtPrice(u.balance)} · заказов: ${u.orders_count} · услуг: ${u.services_count}
+                </div>
+                <div style="font-size:.68rem;color:var(--subtle)">рег. ${fmtDate(u.created_at)}</div>
+              </div>
+              <div style="display:flex;gap:.35rem;flex-wrap:wrap;flex-shrink:0">
+                <button class="btn btn-outline btn-sm" title="${u.is_active?'Заблокировать':'Разблокировать'}" onclick="adminToggleUser('${u.id}','${esc(u.name).replace(/'/g,"\'")}',${page},'${esc(search).replace(/'/g,"\'")}')">
+                  ${u.is_active?'🚫':'✅'}
+                </button>
+                <button class="btn btn-outline btn-sm" title="Корректировать баланс" onclick="adminBalanceUser('${u.id}','${esc(u.name).replace(/'/g,"\'")}',${page},'${esc(search).replace(/'/g,"\'")}')">💰</button>
+                <button class="btn btn-outline btn-sm" title="Изменить роль" onclick="adminSetRole('${u.id}','${esc(u.name).replace(/'/g,"\'")}','${u.role}',${page},'${esc(search).replace(/'/g,"\'")}')">🔑</button>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="pagination mt-2">
+        ${page>1?`<button class="page-btn" onclick="adminUsers(${page-1},'${esc(search)}')">‹</button>`:''}
+        <span style="align-self:center;font-size:.8rem;color:var(--muted)">стр. ${page} из ${pages}</span>
+        ${page<pages?`<button class="page-btn" onclick="adminUsers(${page+1},'${esc(search)}')">›</button>`:''}
+      </div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+
+async function adminServices(page=1){
+  try{
+    const res=await api(`/admin/services?limit=15&page=${page}`);
+    if(!res) return;
+    const total=res.pagination?.total||0;
+    const pages=Math.ceil(total/15)||1;
+    setContent(`<h2><span>🛍️</span>Услуги <span style="font-size:.8rem;color:var(--muted);font-weight:400">${total} всего</span></h2>
+      <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">← Назад</button>`,
+      `<div class="items-list">
+        ${res.data.map(s=>`
+          <div class="order-card">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                ${esc(s.title)} ${s.is_active?'':'<span class="badge badge-red">скрыта</span>'}
+              </div>
+              <div style="font-size:.73rem;color:var(--muted)">${esc(s.executor_name)} · ${esc(s.category_name)} · ${fmtPrice(s.price)} · ⭐${parseFloat(s.rating||0).toFixed(1)} · ${s.orders_count} заказов</div>
+            </div>
+            <div style="display:flex;gap:.35rem;flex-shrink:0">
+              <button class="btn btn-outline btn-sm" title="${s.is_active?'Скрыть':'Показать'}" onclick="adminToggleSvc('${s.id}',${page})">${s.is_active?'🚫':'✅'}</button>
+              <button class="btn btn-danger btn-sm" title="Удалить" onclick="adminDelSvc('${s.id}','${esc(s.title).replace(/'/g,"\'")}',${page})">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="pagination mt-2">
+        ${page>1?`<button class="page-btn" onclick="adminServices(${page-1})">‹</button>`:''}
+        <span style="align-self:center;font-size:.8rem;color:var(--muted)">стр. ${page} из ${pages}</span>
+        ${page<pages?`<button class="page-btn" onclick="adminServices(${page+1})">›</button>`:''}
+      </div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+
+async function adminOrders(page=1){
+  try{
+    const res=await api(`/admin/orders?limit=15&page=${page}`);
+    if(!res) return;
+    const total=res.pagination?.total||0;
+    const pages=Math.ceil(total/15)||1;
+    setContent(`<h2><span>📦</span>Заказы <span style="font-size:.8rem;color:var(--muted);font-weight:400">${total} всего</span></h2>
+      <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">← Назад</button>`,
+      `<div class="items-list">
+        ${res.data.map(o=>`
+          <div class="order-card">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.service_title)}</div>
+              <div style="font-size:.73rem;color:var(--muted)">${esc(o.customer_name)} → ${esc(o.executor_name)} · ${fmtPrice(o.total_price)} · ${fmtDate(o.created_at)}</div>
+            </div>
+            <div style="flex-shrink:0">${fmtStatus(o.status)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="pagination mt-2">
+        ${page>1?`<button class="page-btn" onclick="adminOrders(${page-1})">‹</button>`:''}
+        <span style="align-self:center;font-size:.8rem;color:var(--muted)">стр. ${page} из ${pages}</span>
+        ${page<pages?`<button class="page-btn" onclick="adminOrders(${page+1})">›</button>`:''}
+      </div>`
+    );
+  }catch(e){showErr(e.message);}
+}
+
+async function adminNotify(){
+  const title=prompt('Заголовок уведомления:');
+  if(!title) return;
+  const body=prompt('Текст (необязательно):')||undefined;
+  const role=prompt('Кому отправить?\ncustomer — заказчикам\nexecutor — исполнителям\n(пусто) — всем')||undefined;
+  try{
+    const r=await api('/admin/notify-all','POST',{title,body,role});
+    toastOk(r?.message||'Отправлено');
+  }catch(e){toastErr(e.message);}
+}
+
+async function adminToggleUser(id,name,page=1,search=''){
+  if(!confirm(`${name}: изменить статус блокировки?`)) return;
+  try{const r=await api(`/admin/users/${id}/toggle`,'PATCH');toastOk(r.is_active?'Разблокирован':'Заблокирован');adminUsers(page,search);}
+  catch(e){toastErr(e.message);}
+}
+async function adminSetRole(id,name,cur,page=1,search=''){
+  const role=prompt(`Новая роль для ${name} (сейчас: ${cur}):\ncustomer | executor | admin`);
+  if(!role||!['customer','executor','admin'].includes(role)){toastErr('Неверная роль');return;}
+  try{await api(`/admin/users/${id}/role`,'PATCH',{role});toastOk('Роль изменена');adminUsers(page,search);}
+  catch(e){toastErr(e.message);}
+}
+async function adminBalanceUser(id,name,page=1,search=''){
+  const amt=parseFloat(prompt(`Корректировка баланса для ${name}\n+ чтобы добавить, - чтобы снять:`));
+  if(isNaN(amt)||amt===0) return;
+  const reason=prompt('Причина (необязательно):')||undefined;
+  try{const r=await api(`/admin/users/${id}/balance`,'POST',{amount:amt,reason});toastOk(`Баланс: ${fmtPrice(r.balance)}`);adminUsers(page,search);}
+  catch(e){toastErr(e.message);}
+}
+async function adminToggleSvc(id,page=1){
+  try{const r=await api(`/admin/services/${id}/toggle`,'PATCH');toastOk(r.is_active?'Услуга активна':'Услуга скрыта');adminServices(page);}
+  catch(e){toastErr(e.message);}
+}
+async function adminDelSvc(id,title,page=1){
+  if(!confirm(`Удалить услугу "${title}"? Это действие необратимо.`)) return;
+  try{await api(`/admin/services/${id}`,'DELETE');toastOk('Удалено');adminServices(page);}
+  catch(e){toastErr(e.message);}
+}
+
+/* ── HELPERS ─────────────────────────────────────────────── */
 function showErr(msg,back=false){
   document.getElementById('dc').innerHTML=
     `<div class="dash-content-header"><h2><span>⚠️</span>Ошибка</h2>${back?`<button class="btn btn-ghost btn-sm" onclick="go('orders')">← Назад</button>`:''}</div>`+
