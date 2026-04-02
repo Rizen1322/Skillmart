@@ -147,7 +147,6 @@ async function init() {
     document.getElementById('bc-cat').textContent = (s.category_icon||'') + ' ' + s.category_name;
     render(s, revs||[]);
 
-    // Pre-load balance info if logged in customer
     if (Storage.user?.role === 'customer') {
       const bal = await api('/balance').catch(()=>null);
       if (bal) {
