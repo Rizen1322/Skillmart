@@ -35,7 +35,6 @@
     .h-num { font-family:'Bricolage Grotesque',sans-serif;font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
     .h-lbl { font-size:.72rem;color:var(--subtle);margin-top:.08rem; }
 
-    /* секции */
     .sec { padding:88px 5vw; }
     .sec-badge { display:inline-flex;align-items:center;gap:.35rem;font:700 .68rem 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.75rem; }
     .sec-badge::before { content:'';width:14px;height:2px;background:var(--grad);border-radius:2px; }
@@ -43,14 +42,12 @@
     .sec-sub { color:var(--muted);max-width:480px;font-size:.92rem;line-height:1.72; }
     .tc { text-align:center; } .tc .sec-badge { justify-content:center; } .tc .sec-sub { margin:0 auto; }
 
-    /* каты */
-    .cat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;margin-top:2.5rem; }
+    .cat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;margin-top:2.5rem;justify-content:center; }
     .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.25rem .9rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:block;color:var(--text); }
     .cat-card:hover { border-color:rgba(99,102,241,.3);transform:translateY(-3px);box-shadow:0 12px 36px rgba(99,102,241,.12);background:rgba(99,102,241,.03); }
     .cat-emoji { font-size:1.75rem;margin-bottom:.5rem;display:block; }
     .cat-name  { font:600 .82rem 'Inter',sans-serif; }
     .cat-cnt   { font-size:.68rem;color:var(--subtle);margin-top:.15rem; }
-
 
     .steps-bg { background:linear-gradient(180deg,var(--bg) 0%,rgba(99,102,241,.04) 50%,var(--bg) 100%); }
     .steps-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem;margin-top:2.75rem; }
@@ -136,13 +133,22 @@
     <h2 class="sec-title">Чем может помочь Skillmart?</h2>
     <p class="sec-sub">Всё необходимое для вашего бизнеса и проектов — в одном месте.</p>
   </div>
-  <div class="cat-grid reveal">
-    <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-d">...</div></a>
-    <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-p">...</div></a>
-    <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-w">...</div></a>
-    <a href="/services.html?category=marketing"    class="cat-card"><span class="cat-emoji">📣</span><div class="cat-name">Маркетинг</div><div class="cat-cnt" id="c-m">...</div></a>
-    <a href="/services.html?category=video"        class="cat-card"><span class="cat-emoji">🎬</span><div class="cat-name">Видео</div><div class="cat-cnt" id="c-v">...</div></a>
-    <a href="/services.html?category=other"        class="cat-card"><span class="cat-emoji">🔧</span><div class="cat-name">Другое</div><div class="cat-cnt" id="c-o">...</div></a>
+  <div class="cat-grid reveal" style="justify-items:center">
+    <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-design">...</div></a>
+    <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-programming">...</div></a>
+    <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-writing">...</div></a>
+    <a href="/services.html?category=marketing"    class="cat-card"><span class="cat-emoji">📣</span><div class="cat-name">Маркетинг</div><div class="cat-cnt" id="c-marketing">...</div></a>
+    <a href="/services.html?category=video"        class="cat-card"><span class="cat-emoji">🎬</span><div class="cat-name">Видео</div><div class="cat-cnt" id="c-video">...</div></a>
+    <a href="/services.html?category=photo"        class="cat-card"><span class="cat-emoji">📸</span><div class="cat-name">Фото</div><div class="cat-cnt" id="c-photo">...</div></a>
+    <a href="/services.html?category=audio"        class="cat-card"><span class="cat-emoji">🎵</span><div class="cat-name">Музыка и аудио</div><div class="cat-cnt" id="c-audio">...</div></a>
+    <a href="/services.html?category=animation"    class="cat-card"><span class="cat-emoji">🎭</span><div class="cat-name">Анимация и 3D</div><div class="cat-cnt" id="c-animation">...</div></a>
+    <a href="/services.html?category=accounting"   class="cat-card"><span class="cat-emoji">📊</span><div class="cat-name">Аккаунтинг</div><div class="cat-cnt" id="c-accounting">...</div></a>
+    <a href="/services.html?category=legal"        class="cat-card"><span class="cat-emoji">⚖️</span><div class="cat-name">Юридические</div><div class="cat-cnt" id="c-legal">...</div></a>
+    <a href="/services.html?category=education"    class="cat-card"><span class="cat-emoji">📚</span><div class="cat-name">Обучение</div><div class="cat-cnt" id="c-education">...</div></a>
+    <a href="/services.html?category=ai"           class="cat-card"><span class="cat-emoji">🤖</span><div class="cat-name">ИИ и нейросети</div><div class="cat-cnt" id="c-ai">...</div></a>
+    <a href="/services.html?category=mobile"       class="cat-card"><span class="cat-emoji">📱</span><div class="cat-name">Мобильные</div><div class="cat-cnt" id="c-mobile">...</div></a>
+    <a href="/services.html?category=games"        class="cat-card"><span class="cat-emoji">🎮</span><div class="cat-name">Игры</div><div class="cat-cnt" id="c-games">...</div></a>
+    <a href="/services.html?category=other"        class="cat-card"><span class="cat-emoji">🔧</span><div class="cat-name">Другое</div><div class="cat-cnt" id="c-other">...</div></a>
   </div>
 </section>
 
@@ -226,12 +232,10 @@ function svcCard(s) {
 }
 
 async function init() {
-  // Update nav
   const nav = document.getElementById('nav-actions');
   if (Storage.user) {
     nav.innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
   }
-  // Popular
   try {
     const res = await api('/services?sort=rating&limit=4');
     const pop = document.getElementById('pop');
@@ -242,7 +246,6 @@ async function init() {
       pop.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><h3>Услуги появятся скоро</h3></div>';
     }
   } catch {}
-  // Category counts
   const pairs = [['design','c-d'],['programming','c-p'],['writing','c-w'],['marketing','c-m'],['video','c-v'],['other','c-o']];
   for (const [slug,id] of pairs) {
     try {
