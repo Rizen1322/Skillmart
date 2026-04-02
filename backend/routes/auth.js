@@ -18,35 +18,32 @@ const ALLOWED_DOMAINS = [
 ];
 
 const validateEmail = (email) => {
-  // базовая проверка
-  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  if (typeof email !== 'string') return false;
+
+  email = email.trim().toLowerCase();
+
+  const emailRegex = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/;
   if (!emailRegex.test(email)) return false;
 
   const parts = email.split('@');
   if (parts.length !== 2) return false;
 
-  const domain = parts[1].toLowerCase();
+  const domain = parts[1];
+
+  // запрет типа 123@123.ru
   const domainParts = domain.split('.');
+  const mainPart = domainParts.slice(0, -1).join('.');
+  if (/^\d+$/.test(mainPart)) return false;
 
-  // домен должен иметь минимум 2 части и TLD от 2 символов
-  if (domainParts.length < 2) return false;
-  const tld = domainParts[domainParts.length - 1];
-  if (tld.length < 2) return false;
+  // проверка точного домена или поддомена
+  const isAllowed = ALLOWED_DOMAINS.some(d => 
+    domain === d || domain.endsWith('.' + d)
+  );
 
-  // каждая часть домена не должна быть просто цифрами
-  const localPart = domainParts.slice(0, -1).join('.');
-  if (/^\d+$/.test(localPart)) return false;
-
-  // должен быть буквами
-  if (!/^[a-zA-Z]+$/.test(tld)) return false;
-
-  // разрешённые домены без дополнительных проверок
-  if (ALLOWED_DOMAINS.includes(domain)) return true;
-
-  // домен должен выглядеть реальным
-  const validTlds = ['com','ru','net','org','io','edu','co','dev','app','me','info','biz','pro','online','site','store'];
-  return validTlds.includes(tld);
+  return isAllowed;
 };
+
+module.exports = validateEmail;
 
 const validatePassword = (pwd) => {
   if (pwd.length < 8) return 'Пароль должен быть не менее 8 символов';
