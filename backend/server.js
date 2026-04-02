@@ -21,10 +21,14 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
 
-    if (ALLOWED.includes(origin)) {
+    const isVercelPreview = origin.endsWith('.vercel.app');
+    const isAllowed = ALLOWED.includes(origin);
+
+    if (isVercelPreview || isAllowed) {
       return cb(null, true);
     }
 
+    console.warn(`[cors] отклонён: ${origin}`);
     return cb(null, false);
   },
   credentials: true
