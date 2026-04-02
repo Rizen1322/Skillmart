@@ -28,7 +28,7 @@
     <div class="page-header-sep"></div>
     <h1>Каталог услуг</h1>
   </div>
-  <div class="page-header-right" id="nav-actions" style="margin-right:.5rem">
+  <div class="page-header-right" id="nav-actions" style="margin-right:3.2rem">
     <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
     <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Регистрация</a>
   </div>
@@ -203,7 +203,7 @@ function resetF() {
 }
 
 if (Storage.user) {
-  document.getElementById('nav-actions').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm" style="margin-right:.5rem">Кабинет</a>`;
+  document.getElementById('nav-actions').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm" style="margin-right:3.2rem">Кабинет</a>`;
 }
 
 document.getElementById('q').addEventListener('input', debounce(() => load(1), 450));
