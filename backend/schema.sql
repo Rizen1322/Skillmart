@@ -31,12 +31,21 @@ CREATE TABLE IF NOT EXISTS categories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO categories (name, slug, icon, description, sort_order) VALUES
-  ('Дизайн',           'design',      '🎨', 'Логотипы, UI/UX, иллюстрации', 1),
-  ('Программирование', 'programming', '💻', 'Сайты, приложения, боты',       2),
-  ('Тексты',           'writing',     '✍️', 'Копирайтинг, SEO, переводы',    3),
-  ('Маркетинг',        'marketing',   '📣', 'SMM, реклама, аналитика',       4),
-  ('Видео',            'video',       '🎬', 'Монтаж, анимация, съёмка',      5),
-  ('Другое',           'other',       '🔧', 'Прочие цифровые услуги',        6);
+  ('Дизайн',           'design',       '🎨', 'Логотипы, UI/UX, иллюстрации, брендинг',      1),
+  ('Программирование', 'programming',  '💻', 'Сайты, приложения, боты, автоматизация',       2),
+  ('Тексты',           'writing',      '✍️', 'Копирайтинг, SEO, переводы, рерайтинг',        3),
+  ('Маркетинг',        'marketing',    '📣', 'SMM, реклама, аналитика, email-маркетинг',     4),
+  ('Видео',            'video',        '🎬', 'Монтаж, анимация, съёмка, моушн-дизайн',       5),
+  ('Фото',             'photo',        '📸', 'Обработка фото, ретушь, предметная съёмка',    6),
+  ('Музыка и аудио',   'audio',        '🎵', 'Сочинение, сведение, озвучка, джинглы',        7),
+  ('Анимация и 3D',    'animation',    '🎭', '2D/3D анимация, визуализация, моделирование',  8),
+  ('Аккаунтинг',       'accounting',   '📊', 'Бухгалтерия, налоги, финансовый учёт',         9),
+  ('Юридические',      'legal',        '⚖️', 'Договоры, консультации, регистрация бизнеса', 10),
+  ('Обучение',         'education',    '📚', 'Репетиторство, онлайн-курсы, вебинары',       11),
+  ('ИИ и нейросети',   'ai',           '🤖', 'Промпты, fine-tuning, автоматизация с ИИ',   12),
+  ('Мобильные',        'mobile',       '📱', 'iOS, Android, Flutter, React Native',          13),
+  ('Игры',             'games',        '🎮', 'Разработка игр, моддинг, геймдизайн',          14),
+  ('Другое',           'other',        '🔧', 'Прочие цифровые услуги',                       15);
 
 -- SERVICES
 CREATE TABLE IF NOT EXISTS services (
@@ -49,6 +58,7 @@ CREATE TABLE IF NOT EXISTS services (
   deadline      INT            NOT NULL,
   is_active     TINYINT(1)     NOT NULL DEFAULT 1,
   tags          JSON,
+  is_negotiable TINYINT(1)     NOT NULL DEFAULT 0,
   rating        DECIMAL(3,2)   NOT NULL DEFAULT 0.00,
   reviews_count INT            NOT NULL DEFAULT 0,
   orders_count  INT            NOT NULL DEFAULT 0,
