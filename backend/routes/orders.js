@@ -142,22 +142,10 @@ router.patch('/:id/price', authenticate,
         await conn.rollback(); return res.status(400).json({ error: 'Изменить цену можно только в активном заказе' });
       }
 
-      const isCustomer = req.user.id === order.customer_id;
-      const diff = price - parseFloat(order.total_price);
-
-      if (isCustomer && diff > 0) {
-        const [[bal]] = await conn.query('SELECT amount FROM balances WHERE user_id = ?', [req.user.id]);
-        if (parseFloat(bal?.amount || 0) < diff) {
-          await conn.rollback(); return res.status(400).json({ error: 'Недостаточно средств для доплаты' });
-        }
-        await conn.query('UPDATE balances SET amount = amount - ? WHERE user_id = ?', [diff, req.user.id]);
-        await conn.query('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
-          [randomUUID(), req.user.id, 'payment', diff, 'Доплата по заказу']);
-      } else if (isCustomer && diff < 0) {
-        const refund = Math.abs(diff);
-        await conn.query('UPDATE balances SET amount = amount + ? WHERE user_id = ?', [refund, req.user.id]);
-        await conn.query('INSERT INTO transactions(id,user_id,type,amount,description) VALUES(?,?,?,?,?)',
-          [randomUUID(), req.user.id, 'deposit', refund, 'Возврат по заказу']);
+      // только исполнитель может менять цену
+      if (req.user.id !== order.executor_id) {
+        await conn.rollback();
+        return res.status(403).json({ error: 'Изменить цену может только исполнитель' });
       }
 
       await conn.query('UPDATE orders SET total_price = ? WHERE id = ?', [price, order.id]);
