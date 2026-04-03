@@ -282,6 +282,33 @@ router.delete('/services/:id', async (req, res) => {
   }
 });
 
+// детали заказа для просмотра администратором
+router.get('/orders/:id', async (req, res) => {
+  try {
+    const { rows: [order] } = await query(`
+      SELECT o.*, s.title AS service_title,
+             cu.name AS customer_name, cu.email AS customer_email,
+             ex.name AS executor_name, ex.email AS executor_email
+      FROM orders o
+      JOIN services s ON s.id = o.service_id
+      JOIN users cu ON cu.id = o.customer_id
+      JOIN users ex ON ex.id = o.executor_id
+      WHERE o.id = ?
+    `, [req.params.id]);
+    if (!order) return res.status(404).json({ error: 'заказ не найден' });
+
+    const [{ rows: msgs }, { rows: logs }] = await Promise.all([
+      query('SELECT m.*, u.name AS sender_name FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.order_id=? ORDER BY m.created_at ASC', [req.params.id]),
+      query('SELECT * FROM order_status_log WHERE order_id=? ORDER BY created_at ASC', [req.params.id]),
+    ]);
+    order.messages = msgs;
+    order.status_log = logs;
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: 'ошибка сервера' });
+  }
+});
+
 // все заказы с фильтрами
 router.get('/orders', async (req, res) => {
   try {
@@ -375,3 +402,72 @@ router.delete('/reviews/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// принудительно изменить статус заказа (от имени системы)
+router.patch('/orders/:id/status', async (req, res) => {
+  try {
+    const { status, note } = req.body;
+    const validStatuses = ['created','in_progress','review','completed','cancelled'];
+    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'неверный статус' });
+
+    const { rows: [order] } = await query('SELECT * FROM orders WHERE id = ?', [req.params.id]);
+    if (!order) return res.status(404).json({ error: 'заказ не найден' });
+
+    await query('UPDATE orders SET status = ? WHERE id = ?', [status, req.params.id]);
+    await query(
+      'INSERT INTO order_status_log(order_id,old_status,new_status,changed_by,note) VALUES(?,?,?,?,?)',
+      [req.params.id, order.status, status, req.user.id, note || 'принудительно изменено администратором']
+    );
+
+    // уведомить обе стороны
+    const { randomUUID } = require('../config/db');
+    for (const uid of [order.customer_id, order.executor_id]) {
+      await query('INSERT INTO notifications(id,user_id,type,title,body,data) VALUES(?,?,?,?,?,?)',
+        [randomUUID(), uid, 'admin', '⚠️ Статус заказа изменён администратором',
+         `Статус изменён с «${order.status}» на «${status}»${note ? '. Причина: ' + note : ''}`,
+         JSON.stringify({ order_id: req.params.id })]);
+    }
+
+    // при завершении — выплатить исполнителю
+    if (status === 'completed' && order.status !== 'completed') {
+      const price = parseFloat(order.total_price);
+      await query('INSERT INTO balances(user_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE amount=amount+?',
+        [order.executor_id, price, price]);
+      await query('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
+        [randomUUID(), order.executor_id, req.params.id, 'deposit', price, 'выплата по решению администратора']);
+    }
+
+    // при отмене — вернуть заказчику (если не было завершения)
+    if (status === 'cancelled' && !['completed','cancelled'].includes(order.status)) {
+      const price = parseFloat(order.total_price);
+      await query('INSERT INTO balances(user_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE amount=amount+?',
+        [order.customer_id, price, price]);
+      await query('INSERT INTO transactions(id,user_id,order_id,type,amount,description) VALUES(?,?,?,?,?,?)',
+        [randomUUID(), order.customer_id, req.params.id, 'deposit', price, 'возврат по решению администратора']);
+    }
+
+    const { rows: [updated] } = await query('SELECT * FROM orders WHERE id = ?', [req.params.id]);
+    res.json(updated);
+  } catch (err) {
+    console.error('admin order status:', err.message);
+    res.status(500).json({ error: 'ошибка сервера' });
+  }
+});
+
+// отправить сообщение в чат заказа от имени системы
+router.post('/orders/:id/message', async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'укажите сообщение' });
+    const { randomUUID } = require('../config/db');
+    const id = randomUUID();
+    // сообщение от имени администратора (sender_id = req.user.id)
+    await query('INSERT INTO messages(id,order_id,sender_id,message) VALUES(?,?,?,?)',
+      [id, req.params.id, req.user.id, `🛡️ [Администратор]: ${message.trim()}`]);
+    res.json({ message: 'отправлено' });
+  } catch (err) {
+    res.status(500).json({ error: 'ошибка сервера' });
+  }
+});
+
+
