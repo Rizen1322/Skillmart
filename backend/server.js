@@ -15,6 +15,7 @@ const ALLOWED = [
   'http://localhost:8080',
   'http://localhost:3000',
   'http://localhost:5500',
+  'https://2-gf37s3rw1-rizens-projects-3d6c042b.vercel.app',
 ];
 
 app.use(cors({
