@@ -88,8 +88,7 @@
       <span id="bc-cat">Услуга</span>
     </div>
   </div>
-  <div id="nav-a">
-    <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
+  <div id="nav-a" style="margin-right:3.2rem">
     <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Начать</a>
   </div>
 </div>
@@ -139,7 +138,7 @@ function avatarHtml(avatar, name, cls='', style='') {
 
 async function init() {
   if (!sid) { location.href='/services.html'; return; }
-  if (Storage.user) document.getElementById('nav-a').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+  if (Storage.user) { document.getElementById('nav-a').innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`; document.getElementById('nav-a').style.marginRight='3.2rem'; }
   try {
     const [s, revs] = await Promise.all([api('/services/'+sid), api('/reviews?service_id='+sid)]);
     svc = s;
