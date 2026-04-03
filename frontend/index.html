@@ -6,7 +6,6 @@
   <title>Skillmart — маркетплейс цифровых услуг</title>
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
-    /* floating pill nav */
     .topbar {
       position: fixed; top: 1.1rem; left: 50%; transform: translateX(-50%);
       display: flex; align-items: center; gap: .45rem;
@@ -21,7 +20,6 @@
     .topbar-cat  { padding:.34rem .8rem; border-radius:100px; font:500 .8rem 'Inter',sans-serif; color:var(--muted); transition:all .18s; text-decoration:none; display:inline-block; }
     .topbar-cat:hover { color:var(--text); background:rgba(0,0,0,.05); }
 
-    /* hero */
     .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 5vw 80px; position:relative; overflow:hidden; }
     .orb { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
     .orb1 { width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);top:-100px;left:-80px;animation:flt 9s ease-in-out infinite; }
@@ -36,7 +34,6 @@
     .h-num { font-family:'Bricolage Grotesque',sans-serif;font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
     .h-lbl { font-size:.72rem;color:var(--subtle);margin-top:.08rem; }
 
-    /* sections */
     .sec { padding:88px 5vw; }
     .sec-badge { display:inline-flex;align-items:center;gap:.35rem;font:700 .68rem 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.75rem; }
     .sec-badge::before { content:'';width:14px;height:2px;background:var(--grad);border-radius:2px; }
@@ -44,26 +41,22 @@
     .sec-sub { color:var(--muted);max-width:480px;font-size:.92rem;line-height:1.72; }
     .tc { text-align:center; } .tc .sec-badge { justify-content:center; } .tc .sec-sub { margin:0 auto; }
 
-    /* category grid */
-    .cat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;margin-top:2.5rem; }
-    .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.25rem .9rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:block;color:var(--text); }
+    .cat-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-top:2.5rem; }
+    .cat-card { background:var(--surface);border-radius:var(--r-xl);padding:1.1rem .75rem 1rem;border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .22s;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;color:var(--text); }
     .cat-card:hover { border-color:rgba(99,102,241,.3);transform:translateY(-3px);box-shadow:0 12px 36px rgba(99,102,241,.12);background:rgba(99,102,241,.03); }
     .cat-emoji { font-size:1.75rem;margin-bottom:.5rem;display:block; }
     .cat-name  { font:600 .82rem 'Inter',sans-serif; }
     .cat-cnt   { font-size:.68rem;color:var(--subtle);margin-top:.15rem; }
 
-    /* steps */
     .steps-bg { background:linear-gradient(180deg,var(--bg) 0%,rgba(99,102,241,.04) 50%,var(--bg) 100%); }
     .steps-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem;margin-top:2.75rem; }
-    .step-card { background:var(--surface);border-radius:var(--r-xl);padding:1.5rem;border:1.5px solid var(--border); }
-    .step-num { font-family:'Bricolage Grotesque',sans-serif;font-size:2.75rem;font-weight:800;background:rgba(99,102,241,.1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:.55rem; }
+    .step-card { background:var(--surface);border-radius:var(--r-xl);padding:1.75rem 1.5rem;border:1.5px solid rgba(99,102,241,.18);box-shadow:0 2px 12px rgba(99,102,241,.07);transition:transform .2s,box-shadow .2s; } .step-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(99,102,241,.13);}
+    .step-num { font-family:'Bricolage Grotesque',sans-serif;font-size:2.75rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:.55rem;opacity:1; }
     .step-t { font:700 .9rem 'Inter',sans-serif;margin-bottom:.35rem; }
     .step-d { font-size:.82rem;color:var(--muted);line-height:1.65; }
 
-    /* popular grid */
     .pop-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:1.1rem;margin-top:1.6rem; }
 
-    /* dark */
     .dark-sec { background:#0d0d17;color:#fff; }
     .dark-sec .sec-title { color:#fff; }
     .dark-sec .sec-sub { color:rgba(255,255,255,.5); }
@@ -74,7 +67,6 @@
     .trust-t { font:600 .88rem 'Inter',sans-serif;margin-bottom:.3rem;text-align:center; }
     .trust-d { font-size:.78rem;color:rgba(255,255,255,.46);line-height:1.65;text-align:center; }
 
-    /* cta */
     .cta-wrap { padding:80px 5vw;text-align:center; }
     .cta-box { max-width:620px;margin:0 auto;background:var(--grad);border-radius:28px;padding:3.25rem 2.5rem;position:relative;overflow:hidden; }
     .cta-box::before { content:'';position:absolute;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.06);top:-100px;right:-70px;pointer-events:none; }
@@ -86,7 +78,6 @@
     .btn-glass { padding:.7rem 1.75rem;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font:600 .88rem 'Inter',sans-serif;border:1.5px solid rgba(255,255,255,.3);cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center; }
     .btn-glass:hover { background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.55); }
 
-    /* footer */
     footer { background:#0d0d17;color:rgba(255,255,255,.46);padding:52px 5vw 32px; }
     .foot-grid { display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:2.5rem;margin-bottom:2.5rem; }
     .f-logo { font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.6rem; }
@@ -109,25 +100,22 @@
 </head>
 <body>
 
-<!-- Floating pill nav -->
 <div class="topbar">
   <span class="topbar-logo">Skillmart</span>
   <div class="topbar-div"></div>
   <a href="/services.html" class="topbar-cat">Каталог</a>
   <div class="topbar-right" id="nav-actions">
-    <a href="/auth.html" class="btn btn-ghost btn-sm">Войти</a>
     <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Начать →</a>
   </div>
 </div>
 
-<!-- HERO -->
 <section class="hero">
   <div class="orb orb1"></div><div class="orb orb2"></div>
   <div class="hero-pill"><span class="pill-dot"></span>Маркетплейс цифровых услуг</div>
   <h1>Найди нужного<br/><span class="grad-text">специалиста</span><br/>за минуты</h1>
   <p class="hero-sub">Тысячи профессионалов — дизайнеры, разработчики, копирайтеры — готовы выполнить ваш заказ.</p>
   <div class="hero-btns">
-    <a href="/services.html" class="btn btn-primary btn-lg">🔍 &nbsp;Найти услугу</a>
+    <a href="/services.html" class="btn btn-primary btn-lg">🔍 Найти услугу</a>
     <a href="/auth.html?mode=register" class="btn btn-outline btn-lg">Стать исполнителем →</a>
   </div>
   <div class="hero-stats">
@@ -137,7 +125,6 @@
   </div>
 </section>
 
-<!-- CATEGORIES -->
 <section class="sec">
   <div class="tc">
     <div class="sec-badge">Категории</div>
@@ -145,16 +132,24 @@
     <p class="sec-sub">Всё необходимое для вашего бизнеса и проектов — в одном месте.</p>
   </div>
   <div class="cat-grid reveal">
-    <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-d">...</div></a>
-    <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-p">...</div></a>
-    <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-w">...</div></a>
-    <a href="/services.html?category=marketing"    class="cat-card"><span class="cat-emoji">📣</span><div class="cat-name">Маркетинг</div><div class="cat-cnt" id="c-m">...</div></a>
-    <a href="/services.html?category=video"        class="cat-card"><span class="cat-emoji">🎬</span><div class="cat-name">Видео</div><div class="cat-cnt" id="c-v">...</div></a>
-    <a href="/services.html?category=other"        class="cat-card"><span class="cat-emoji">🔧</span><div class="cat-name">Другое</div><div class="cat-cnt" id="c-o">...</div></a>
+    <a href="/services.html?category=design"       class="cat-card"><span class="cat-emoji">🎨</span><div class="cat-name">Дизайн</div><div class="cat-cnt" id="c-design">...</div></a>
+    <a href="/services.html?category=programming"  class="cat-card"><span class="cat-emoji">💻</span><div class="cat-name">Разработка</div><div class="cat-cnt" id="c-programming">...</div></a>
+    <a href="/services.html?category=writing"      class="cat-card"><span class="cat-emoji">✍️</span><div class="cat-name">Тексты</div><div class="cat-cnt" id="c-writing">...</div></a>
+    <a href="/services.html?category=marketing"    class="cat-card"><span class="cat-emoji">📣</span><div class="cat-name">Маркетинг</div><div class="cat-cnt" id="c-marketing">...</div></a>
+    <a href="/services.html?category=video"        class="cat-card"><span class="cat-emoji">🎬</span><div class="cat-name">Видео</div><div class="cat-cnt" id="c-video">...</div></a>
+    <a href="/services.html?category=photo"        class="cat-card"><span class="cat-emoji">📸</span><div class="cat-name">Фото</div><div class="cat-cnt" id="c-photo">...</div></a>
+    <a href="/services.html?category=audio"        class="cat-card"><span class="cat-emoji">🎵</span><div class="cat-name">Музыка и аудио</div><div class="cat-cnt" id="c-audio">...</div></a>
+    <a href="/services.html?category=animation"    class="cat-card"><span class="cat-emoji">🎭</span><div class="cat-name">Анимация и 3D</div><div class="cat-cnt" id="c-animation">...</div></a>
+    <a href="/services.html?category=accounting"   class="cat-card"><span class="cat-emoji">📊</span><div class="cat-name">Аккаунтинг</div><div class="cat-cnt" id="c-accounting">...</div></a>
+    <a href="/services.html?category=legal"        class="cat-card"><span class="cat-emoji">⚖️</span><div class="cat-name">Юридические</div><div class="cat-cnt" id="c-legal">...</div></a>
+    <a href="/services.html?category=education"    class="cat-card"><span class="cat-emoji">📚</span><div class="cat-name">Обучение</div><div class="cat-cnt" id="c-education">...</div></a>
+    <a href="/services.html?category=ai"           class="cat-card"><span class="cat-emoji">🤖</span><div class="cat-name">ИИ и нейросети</div><div class="cat-cnt" id="c-ai">...</div></a>
+    <a href="/services.html?category=mobile"       class="cat-card"><span class="cat-emoji">📱</span><div class="cat-name">Мобильные</div><div class="cat-cnt" id="c-mobile">...</div></a>
+    <a href="/services.html?category=games"        class="cat-card"><span class="cat-emoji">🎮</span><div class="cat-name">Игры</div><div class="cat-cnt" id="c-games">...</div></a>
+    <a href="/services.html?category=other"        class="cat-card"><span class="cat-emoji">🔧</span><div class="cat-name">Другое</div><div class="cat-cnt" id="c-other">...</div></a>
   </div>
 </section>
 
-<!-- HOW -->
 <section class="sec steps-bg">
   <div class="tc">
     <div class="sec-badge">Как это работает</div>
@@ -168,7 +163,6 @@
   </div>
 </section>
 
-<!-- POPULAR -->
 <section class="sec">
   <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:.25rem">
     <div><div class="sec-badge">Популярное</div><h2 class="sec-title" style="margin-bottom:0">Топ услуг</h2></div>
@@ -179,7 +173,6 @@
   </div>
 </section>
 
-<!-- TRUST -->
 <section class="sec dark-sec">
   <div class="tc">
     <div class="sec-badge">Почему Skillmart</div>
@@ -194,7 +187,6 @@
   </div>
 </section>
 
-<!-- CTA -->
 <section class="cta-wrap">
   <div class="cta-box reveal">
     <h2>Готовы начать?</h2>
@@ -206,19 +198,7 @@
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="foot-grid">
-    <div><div class="f-logo">Skillmart</div><p class="f-desc">Маркетплейс цифровых услуг для бизнеса и частных заказчиков.</p></div>
-    <div class="f-col"><h4>Платформа</h4><ul><li><a href="#">О нас</a></li><li><a href="#">Блог</a></li><li><a href="#">Помощь</a></li></ul></div>
-    <div class="f-col"><h4>Заказчикам</h4><ul><li><a href="/services.html">Найти услугу</a></li><li><a href="#">Гарантии</a></li></ul></div>
-    <div class="f-col"><h4>Исполнителям</h4><ul><li><a href="/auth.html?mode=register">Начать работать</a></li><li><a href="#">FAQ</a></li></ul></div>
-  </div>
-  <div class="foot-bot">
-    <span>© 2024 Skillmart</span>
-    <div class="socials"><div class="soc">𝕏</div><div class="soc">in</div><div class="soc">✈</div></div>
-  </div>
-</footer>
+
 
 <script src="/js/app.js"></script>
 <script>
@@ -250,12 +230,10 @@ function svcCard(s) {
 }
 
 async function init() {
-  // Update nav
   const nav = document.getElementById('nav-actions');
   if (Storage.user) {
     nav.innerHTML = `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
   }
-  // Popular
   try {
     const res = await api('/services?sort=rating&limit=4');
     const pop = document.getElementById('pop');
@@ -266,7 +244,6 @@ async function init() {
       pop.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><h3>Услуги появятся скоро</h3></div>';
     }
   } catch {}
-  // Category counts
   const pairs = [['design','c-d'],['programming','c-p'],['writing','c-w'],['marketing','c-m'],['video','c-v'],['other','c-o']];
   for (const [slug,id] of pairs) {
     try {
