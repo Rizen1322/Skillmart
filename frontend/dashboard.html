@@ -6,9 +6,7 @@
   <title>Личный кабинет — Skillmart</title>
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
-    /* уведомления рендерятся через app.js (nb-wrap) */
 
-    /* ── PRICE CHANGE ─────────────────────────────── */
     .price-change-bar {
       background:rgba(245,158,11,.06); border:1.5px solid rgba(245,158,11,.2);
       border-radius:var(--r); padding:.7rem 1rem; margin-top:.75rem;
@@ -18,7 +16,6 @@
     .price-change-bar input { flex:1; min-width:100px; padding:.4rem .7rem; font-size:.84rem; border-radius:8px; height:34px; }
     .price-change-bar textarea { flex:2; min-width:140px; padding:.4rem .7rem; font-size:.8rem; border-radius:8px; min-height:34px; max-height:60px; resize:none; }
 
-    /* ── SIDEBAR BRAND ────────────────────────────── */
     .sb-brand {
       font-family:'Bricolage Grotesque',sans-serif; font-size:1.1rem; font-weight:800;
       background:linear-gradient(135deg,#6366f1,#8b5cf6);
@@ -35,7 +32,6 @@
     .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:99; }
     .sb-overlay.show { display:block; }
 
-    /* ── AVATAR ───────────────────────────────────── */
     .av-ring {
       width:72px; height:72px; border-radius:18px;
       background:var(--grad); display:flex; align-items:center;
@@ -78,7 +74,6 @@
   </div>
 </div>
 
-<!-- Service modal -->
 <div class="modal-overlay" id="svc-modal">
   <div class="modal" style="max-width:540px">
     <div class="modal-header"><h3 id="sm-title">Создать услугу</h3><button class="modal-close" onclick="closeSvcModal()">✕</button></div>
@@ -105,9 +100,8 @@
 <script>
 if (!requireAuth()) {}
 const user = Storage.getUser();
-let editSvcId=null, cats=[], pollT=null, bellPoll=null, stars=0;
+let editSvcId=null, cats=[], pollT=null, stars=0;
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
 function buildSB() {
   const av = document.getElementById('sb-av');
   if (user.avatar) { av.innerHTML=`<img src="${esc(user.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`; }
@@ -130,7 +124,6 @@ function setActive(id) { document.querySelectorAll('.sb-item').forEach(b=>b.clas
 function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sb-ov').classList.toggle('show'); }
 function closeSB()  { document.getElementById('sb').classList.remove('open'); document.getElementById('sb-ov').classList.remove('show'); }
 
-/* ── CONTENT PANE ────────────────────────────────────────── */
 function setContent(hdr, body) {
   document.getElementById('dc').innerHTML =
     `<div class="dash-content-header">${hdr}</div><div class="dash-inner">${body}</div>`;
@@ -145,7 +138,6 @@ function go(sec, extra={}) {
   (map[sec]||loadOrders)();
 }
 
-/* ── NOTIFICATION BELL ───────────────────────────────────── */
 let bellOpen = false;
 async function refreshBell() {
   try {
@@ -172,7 +164,6 @@ async function refreshBell() {
 }
 
 
-async function markAllRead() { try { await api('/notifications/read-all','PATCH'); refreshBell(); } catch {} }
 function relTime(s) {
   const d=new Date(s), now=new Date(), diff=Math.floor((now-d)/1000);
   if(diff<60) return 'только что';
@@ -181,7 +172,6 @@ function relTime(s) {
   return fmtDate(s);
 }
 
-/* ── ORDERS ──────────────────────────────────────────────── */
 async function loadOrders() {
   try {
     const res = await api('/orders?limit=50'); if(!res) return;
@@ -229,7 +219,6 @@ function renderOList(data,f) {
     </div>`).join('');
 }
 
-/* ── CHAT ────────────────────────────────────────────────── */
 async function loadChat(oid) {
   if (!oid) { loadOrders(); return; }
   try {
@@ -255,7 +244,6 @@ async function loadChat(oid) {
         </div>
       </div>
 
-      <!-- панель изменения цены — только для исполнителя -->
       ${!['completed','cancelled'].includes(order.status) && user.role==='executor' ? `
       <div class="price-change-bar">
         <label>💸 Предложить цену:</label>
@@ -297,7 +285,6 @@ async function fetchMsgs(oid, quiet=false) {
       ? data.map(m=>{
           const mine=m.sender_id===user.id;
           const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-          // Price change messages get special styling
           const isPrice = m.message.startsWith('💰') || m.message.startsWith('💸');
           return `<div class="chat-msg ${mine?'mine':'theirs'}" ${isPrice?'style="align-self:center;max-width:90%"':''}>
             ${!mine&&!isPrice?`<div class="chat-sender">${esc(m.sender_name)}</div>`:''}
@@ -320,7 +307,7 @@ async function send(oid){
 async function chStatus(oid,st,title){
   const lbs={in_progress:'взять в работу',review:'отправить на проверку',completed:'завершить и оплатить',cancelled:'отменить'};
   if(!confirm(`${lbs[st]||st} заказ "${title}"?`)) return;
-  try { await api('/orders/'+oid+'/status','PATCH',{status:st}); toastOk('Статус обновлён'); loadChat(oid); refreshBell(); }
+  try { await api('/orders/'+oid+'/status','PATCH',{status:st}); toastOk('Статус обновлён'); loadChat(oid); }
   catch(e){ toastErr(e.message); }
 }
 
@@ -331,7 +318,6 @@ async function changePrice(oid){
   try {
     const res = await api('/orders/'+oid+'/price','PATCH',{price:v, note:note||undefined});
     toastOk('Цена изменена!');
-    // Update displayed price
     const el=document.getElementById('cur-price');
     if(el) el.textContent='💰 '+fmtPrice(v);
     document.getElementById('new-price').value='';
@@ -362,7 +348,6 @@ async function sendReview(oid){
   catch(e){toastErr(e.message);}
 }
 
-/* ── SERVICES ────────────────────────────────────────────── */
 async function loadServices(){
   try{
     const res=await api('/services?limit=100'); if(!res) return;
@@ -381,7 +366,7 @@ async function loadServices(){
             <div style="font-size:.7rem;color:var(--subtle);margin-bottom:.65rem">⭐${parseFloat(s.rating||0).toFixed(1)} · 💬${s.reviews_count} · 📦${s.orders_count}</div>
             <div class="svc-m-actions">
               <a href="/service.html?id=${s.id}" class="btn btn-outline btn-sm">👁</a>
-              <button class="btn btn-outline btn-sm" onclick="openSvcModal('${s.id}')">✏️</button>
+              <button class="btn btn-outline btn-sm" onclick="openSvcModal('${s.id}',true)">✏️</button>
               <button class="btn btn-danger btn-sm" onclick="delSvc('${s.id}','${esc(s.title).replace(/'/g,"\\'")}')">🗑</button>
             </div>
           </div>
@@ -390,8 +375,8 @@ async function loadServices(){
     );
   } catch(e){showErr(e.message);}
 }
-async function openSvcModal(id=null){
-  editSvcId=id; document.getElementById('sm-title').textContent=id?'Редактировать':'Создать услугу';
+async function openSvcModal(id=null, adminMode=false){
+  editSvcId=id; window._adminSvcMode=adminMode; document.getElementById('sm-title').textContent=id?'Редактировать':'Создать услугу';
   document.getElementById('sf-err').classList.remove('show');
   if(!cats.length){ try{ cats=await api('/categories')||[]; }catch{} }
   const csel=document.getElementById('sf-cat');
@@ -405,7 +390,7 @@ document.getElementById('svc-modal').addEventListener('click',e=>{ if(e.target.i
 function toggleNeg(cb){
   const priceRow = document.getElementById('sf-price')?.closest('.form-group');
   if(priceRow){ priceRow.style.display = cb.checked ? 'none' : ''; }
-  if(cb.checked){ const inp=document.getElementById('sf-price'); if(inp) inp.value='0'; }
+  if(cb.checked){ const inp=document.getElementById('sf-price'); if(inp) inp.value='1'; }
 }
 
 async function submitSvc(){
@@ -413,16 +398,15 @@ async function submitSvc(){
   const errEl=document.getElementById('sf-err'); errEl.classList.remove('show');
   if(!title||title.length<10){errEl.textContent='Название: мин. 10 символов';errEl.classList.add('show');return;}
   if(!desc||desc.length<30){errEl.textContent='Описание: мин. 30 символов';errEl.classList.add('show');return;}
-  const isNeg = document.getElementById('sf-neg')?.checked; if(!isNeg && (!price||price<1)){errEl.textContent='Укажите цену';errEl.classList.add('show');return;}
+  const isNeg = document.getElementById('sf-neg')?.checked; const finalPrice = isNeg ? 1 : price; if(!isNeg && (!price||price<1)){errEl.textContent='Укажите цену';errEl.classList.add('show');return;}
   if(!days||days<1){errEl.textContent='Укажите срок';errEl.classList.add('show');return;}
   const btn=document.getElementById('sf-submit'); btn.disabled=true; btn.textContent='Сохраняем...';
-  try{ const body={title,description:desc,price,deadline:days,category_id:catId,tags,is_negotiable:document.getElementById('sf-neg')?.checked||false}; editSvcId?await api('/services/'+editSvcId,'PUT',body):await api('/services','POST',body); toastOk(editSvcId?'Обновлено!':'Услуга создана!'); closeSvcModal(); loadServices(); }
+  try{ const body={title,description:desc,price:finalPrice,deadline:days,category_id:catId,tags,is_negotiable:isNeg}; editSvcId ? await api((window._adminSvcMode?'/admin/services/':'/services/')+editSvcId,'PUT',body) : await api('/services','POST',body); toastOk(editSvcId?'Обновлено!':'Услуга создана!'); closeSvcModal(); window._adminSvcMode ? adminServices() : loadServices(); }
   catch(e){ errEl.textContent=e.message||'Ошибка'; errEl.classList.add('show'); }
   finally{ btn.disabled=false; btn.textContent='Сохранить'; }
 }
 async function delSvc(id,title){ if(!confirm(`Удалить "${title}"?`)) return; try{ await api('/services/'+id,'DELETE'); toastOk('Удалено'); loadServices(); }catch(e){toastErr(e.message);} }
 
-/* ── BALANCE ─────────────────────────────────────────────── */
 async function loadBalance(){
   try{
     const res=await api('/balance'); if(!res) return;
@@ -457,7 +441,6 @@ async function loadBalance(){
 }
 async function doDeposit(){ const v=parseFloat(document.getElementById('dep').value); if(!v||v<100){toastErr('Мин. 100 ₽');return;} try{ await api('/balance/deposit','POST',{amount:v}); toastOk('Пополнено на '+fmtPrice(v)); loadBalance(); }catch(e){toastErr(e.message);} }
 
-/* ── NOTIFICATIONS ───────────────────────────────────────── */
 async function loadNotifs(){
   try{
     const res=await api('/notifications'); if(!res) return;
@@ -479,9 +462,8 @@ async function loadNotifs(){
   }catch(e){showErr(e.message);}
 }
 function nIco(t){const m={order_created:'📦',order_accepted:'🔄',order_completed:'✅',order_cancelled:'❌',new_message:'💬',new_review:'⭐',payment_received:'💰',price_changed:'💸'};return m[t]||'🔔';}
-async function markAllRead(){try{await api('/notifications/read-all','PATCH');toastOk('Готово');loadNotifs();refreshBell();}catch(e){toastErr(e.message);}}
+async function markAllRead(){try{await api('/notifications/read-all','PATCH');toastOk('Готово');loadNotifs();}catch(e){toastErr(e.message);} }
 
-/* ── PROFILE ─────────────────────────────────────────────── */
 async function loadProfile(){
   try{
     const res=await api('/users/me/full'); if(!res) return;
@@ -511,7 +493,6 @@ async function loadProfile(){
     </div>`:'';
 
     setContent(`<h2><span>⚙️</span>Профиль</h2>`, heroHtml+`
-      <!-- BASIC -->
       <div class="form-box mb-2">
         <h3>Аватар и данные</h3>
         <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.25rem;flex-wrap:wrap">
@@ -531,7 +512,6 @@ async function loadProfile(){
         <button class="btn btn-primary" onclick="saveProfile()">Сохранить данные</button>
       </div>
 
-      <!-- PASSWORD -->
       <div class="form-box mb-2">
         <h3>Смена пароля</h3>
         <div class="form-group"><label>Текущий пароль</label><input type="password" id="p-old" placeholder="••••••••"/></div>
@@ -539,7 +519,6 @@ async function loadProfile(){
         <button class="btn btn-outline" onclick="changePass()">Изменить пароль</button>
       </div>
 
-      <!-- SOCIALS (both roles) -->
       <div class="form-box mb-2">
         <h3>🔗 Социальные сети</h3>
         <div class="grid-2">
@@ -556,7 +535,6 @@ async function loadProfile(){
       </div>
 
       ${isExec?`
-      <!-- EXECUTOR STATUS -->
       <div class="form-box mb-2">
         <h3>🎯 Статус исполнителя</h3>
         <div class="grid-2">
@@ -578,7 +556,6 @@ async function loadProfile(){
         <button class="btn btn-primary" onclick="saveFull()">Сохранить статус</button>
       </div>
 
-      <!-- SKILLS -->
       <div class="form-box mb-2">
         <h3>🛠 Навыки</h3>
         <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый навык на новой строке: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Figma:5</code> (уровень 1–5)</p>
@@ -586,13 +563,19 @@ async function loadProfile(){
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить навыки</button>
       </div>
 
-      <!-- PORTFOLIO -->
       <div class="form-box">
         <h3>🎨 Портфолио</h3>
         <p style="font-size:.77rem;color:var(--muted);margin-bottom:.8rem">Каждый проект: <code style="background:var(--surface2);padding:.1rem .35rem;border-radius:5px">Название|URL|Описание</code> · макс. 5 проектов</p>
         <textarea id="ep-port" rows="5" placeholder="Сайт для кафе|https://behance.net/...|Редизайн" maxlength="1000">${esc(portVal)}</textarea>
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить портфолио</button>
       </div>`:''}
+
+      <div class="form-box mt-2" style="border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.025)">
+        <h3 style="color:var(--red);margin-bottom:.5rem">⚠️ Удалить аккаунт</h3>
+        <p style="font-size:.82rem;color:var(--muted);margin:0 0 .85rem">Это действие необратимо. Все данные будут удалены без возможности восстановления. Введите текущий пароль для подтверждения.</p>
+        <div class="form-group"><label>Текущий пароль</label><input type="password" id="del-pwd" placeholder="••••••••" maxlength="128"/></div>
+        <button class="btn btn-danger" onclick="deleteAccount()">Удалить мой аккаунт</button>
+      </div>
     `);
   }catch(e){showErr(e.message);}
 }
@@ -606,7 +589,6 @@ function onAvatar(event){
   reader.onload=e=>{
     const b64=e.target.result;
     document.getElementById('av-preview').innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover"/>`;
-    // update sidebar too
     const sbAv=document.getElementById('sb-av');
     sbAv.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`;
     window._av=b64;
@@ -673,7 +655,6 @@ async function deleteAccount(){
 }
 
 
-/* ── ADMIN ─────────────────────────────────────────────────── */
 async function loadAdmin(){
   if(user.role!=='admin'){showErr('Доступ запрещён');return;}
   try{
@@ -812,6 +793,7 @@ async function adminServices(page=1){
             </div>
             <div style="display:flex;gap:.35rem;flex-shrink:0">
               <button class="btn btn-outline btn-sm" title="${s.is_active?'Скрыть':'Показать'}" onclick="adminToggleSvc('${s.id}',${page})">${s.is_active?'🚫':'✅'}</button>
+              <button class="btn btn-outline btn-sm" title="Редактировать" onclick="openSvcModal('${s.id}',true)">✏️</button>
               <button class="btn btn-danger btn-sm" title="Удалить" onclick="adminDelSvc('${s.id}','${esc(s.title).replace(/'/g,"\'")}',${page})">🗑</button>
             </div>
           </div>`).join('')}
@@ -967,16 +949,13 @@ async function adminDelSvc(id,title,page=1){
   catch(e){toastErr(e.message);}
 }
 
-/* ── HELPERS ─────────────────────────────────────────────── */
 function showErr(msg,back=false){
   document.getElementById('dc').innerHTML=
     `<div class="dash-content-header"><h2><span>⚠️</span>Ошибка</h2>${back?`<button class="btn btn-ghost btn-sm" onclick="go('orders')">← Назад</button>`:''}</div>`+
     `<div class="dash-inner"><div class="empty"><div class="empty-icon">⚠️</div><h3>Не удалось загрузить</h3><p>${esc(msg||'Попробуйте позже')}</p></div></div>`;
 }
 
-/* ── INIT ────────────────────────────────────────────────── */
 buildSB();
-refreshBell();
 const chatParam=qp('chat');
 if(chatParam) go('chat',{oid:chatParam});
 else go(user.role==='customer'?'orders':'services');
