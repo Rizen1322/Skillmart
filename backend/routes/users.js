@@ -147,3 +147,22 @@ router.get('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// DELETE /api/users/me — удаление аккаунта с подтверждением пароля
+router.delete('/me', authenticate, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'укажите пароль для подтверждения' });
+  try {
+    const bcrypt = require('bcryptjs');
+    const { rows: [user] } = await query('SELECT password_hash FROM users WHERE id=?', [req.user.id]);
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(400).json({ error: 'Неверный пароль' });
+
+    // деактивируем вместо физического удаления чтобы не ломать FK
+    await query('UPDATE users SET is_active=0, email=CONCAT(email,"_deleted_",UNIX_TIMESTAMP()), name=CONCAT(name," (удалён)") WHERE id=?', [req.user.id]);
+    res.json({ message: 'аккаунт удалён' });
+  } catch(err) {
+    console.error('DELETE /users/me:', err.message);
+    res.status(500).json({ error: 'ошибка сервера' });
+  }
+});
