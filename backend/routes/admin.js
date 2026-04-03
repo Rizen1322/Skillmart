@@ -401,6 +401,29 @@ router.delete('/reviews/:id', async (req, res) => {
   }
 });
 
+
+// редактировать услугу (без ограничения по executor_id)
+router.put('/services/:id', async (req, res) => {
+  try {
+    const { title, description, price, deadline, category_id, tags, is_active, is_negotiable } = req.body;
+    await query(`UPDATE services SET
+      title=?, description=?, price=?, deadline=?, category_id=?,
+      tags=?, is_negotiable=?,
+      is_active=COALESCE(?,is_active) WHERE id=?`,
+      [title, description, parseFloat(price)||1, parseInt(deadline)||1,
+       parseInt(category_id), JSON.stringify(tags||[]),
+       is_negotiable ? 1 : 0,
+       is_active !== undefined ? (is_active?1:0) : null,
+       req.params.id]
+    );
+    const { rows: [svc] } = await query('SELECT * FROM services WHERE id=?', [req.params.id]);
+    res.json(svc);
+  } catch(err) {
+    console.error('admin PUT /services/:id:', err.message);
+    res.status(500).json({ error: 'ошибка сервера' });
+  }
+});
+
 module.exports = router;
 
 // принудительно изменить статус заказа (от имени системы)
