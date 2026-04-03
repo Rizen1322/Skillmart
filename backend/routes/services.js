@@ -18,7 +18,10 @@ router.get('/', async (req, res) => {
     const max_price = req.query.max_price ? parseFloat(req.query.max_price) : null;
 
     const params = [];
-    const conds  = ['s.is_active = 1', 'u.is_active = 1'];
+    const conds  = ['s.is_active = 1', 'u.is_active = 1',
+      // скрываем услуги исполнителей со статусом "занят" или "в отпуске"
+      "(ep.availability IS NULL OR ep.availability = 'available')"
+    ];
 
     if (category)  { params.push(category);  conds.push('c.slug = ?'); }
     if (min_price) { params.push(min_price); conds.push('s.price >= ?'); }
@@ -41,6 +44,7 @@ router.get('/', async (req, res) => {
       `SELECT COUNT(*) AS total FROM services s
        JOIN users u ON u.id = s.executor_id
        JOIN categories c ON c.id = s.category_id
+       LEFT JOIN executor_profiles ep ON ep.user_id = s.executor_id
        WHERE ${conds.join(' AND ')}`, cntParams
     );
     const total = parseInt(cntRows[0]?.total || 0);
@@ -55,6 +59,7 @@ router.get('/', async (req, res) => {
       FROM services s
       JOIN users u ON u.id = s.executor_id
       JOIN categories c ON c.id = s.category_id
+      LEFT JOIN executor_profiles ep ON ep.user_id = s.executor_id
       WHERE ${conds.join(' AND ')}
       ORDER BY ${ORDER}
       LIMIT ? OFFSET ?
