@@ -1,6 +1,7 @@
 'use strict';
 const API = 'https://2-production-ab08.up.railway.app/api';
 
+/* ── Storage ──────────────────────────────────────────────── */
 const Storage = {
   get token()  { return localStorage.getItem('sm_tk'); },
   set token(v) { v ? localStorage.setItem('sm_tk', v) : localStorage.removeItem('sm_tk'); },
