@@ -8,14 +8,17 @@ const rateLimit = require('express-rate-limit');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// railway и другие хостинги стоят за прокси — доверяем первому hop
+app.set('trust proxy', 1);
+
 const ALLOWED = [
   'https://2-nu-eight.vercel.app',
   'https://2-h1b61l0p4-rizens-projects-3d6c042b.vercel.app',
+  'https://skillmart-production-eb9d.up.railway.app',
   'https://2-production-ab08.up.railway.app',
   'http://localhost:8080',
   'http://localhost:3000',
   'http://localhost:5500',
-  'https://2-gf37s3rw1-rizens-projects-3d6c042b.vercel.app',
 ];
 
 app.use(cors({
@@ -47,6 +50,7 @@ app.use('/api/balance',       require('./routes/balance'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/users',         require('./routes/users'));
 app.use('/api/admin',         require('./routes/admin'));
+app.use('/api/maintenance',    require('./routes/maintenance'));
 
 app.get('/health', (_, res) => res.json({ ok: true, time: new Date() }));
 app.use((_, res) => res.status(404).json({ error: 'маршрут не найден' }));
@@ -56,3 +60,24 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log(`сервер запущен на порту ${PORT}`));
+
+// внутренний крон — очистка бд каждое воскресенье в 3:00 ночи
+try {
+  const cron = require('node-cron');
+  cron.schedule('0 3 * * 0', async () => {
+    console.log('[cron] запуск еженедельной очистки...');
+    try {
+      const res = await fetch(`http://localhost:${PORT}/api/maintenance/cleanup`, {
+        method: 'POST',
+        headers: { 'x-cron-secret': process.env.CRON_SECRET || 'skillmart-cron-secret' }
+      });
+      const data = await res.json();
+      console.log('[cron] очистка завершена:', data.log?.join(', '));
+    } catch(e) {
+      console.error('[cron] ошибка очистки:', e.message);
+    }
+  }, { timezone: 'Europe/Moscow' });
+  console.log('[cron] планировщик запущен (очистка: вс 3:00 МСК)');
+} catch(e) {
+  console.warn('[cron] node-cron недоступен:', e.message);
+}

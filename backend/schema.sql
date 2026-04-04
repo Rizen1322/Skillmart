@@ -219,3 +219,12 @@ CREATE TABLE IF NOT EXISTS executor_profiles (
   PRIMARY KEY (user_id),
   CONSTRAINT fk_ep_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- лог операций очистки для аудита
+CREATE TABLE IF NOT EXISTS cleanup_log (
+  id         INT      NOT NULL AUTO_INCREMENT,
+  run_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  results    JSON,
+  ran_by     CHAR(36),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
