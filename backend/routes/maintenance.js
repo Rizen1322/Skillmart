@@ -4,7 +4,7 @@
 const router = require('express').Router();
 const { query, pool, randomUUID } = require('../config/db');
 
-const CRON_SECRET = process.env.CRON_SECRET || 'skillmart-cron-secret';
+const CRON_SECRET = process.env.CRON_SECRET || '4f9a7E!2#d98B_zQx91mPqW_L0k8V_rS6tU5yX_iO4nE3mC2vB1aZ9lK8jH7gF6';
 
 // проверяем либо admin JWT, либо секретный ключ в заголовке
 const cronAuth = (req, res, next) => {
