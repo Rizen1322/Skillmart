@@ -6,7 +6,6 @@
   <title>Личный кабинет — Skillmart</title>
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
-
     .price-change-bar {
       background:rgba(245,158,11,.06); border:1.5px solid rgba(245,158,11,.2);
       border-radius:var(--r); padding:.7rem 1rem; margin-top:.75rem;
@@ -160,8 +159,8 @@ async function refreshBell() {
           <div class="bell-time">${relTime(n.created_at)}</div>
         </div>
       </div>`).join('');
-  } catch {}
-}
+  }  catch {}  
+} 
 
 
 function relTime(s) {
@@ -570,6 +569,7 @@ async function loadProfile(){
         <button class="btn btn-primary mt-1" onclick="saveFull()">Сохранить портфолио</button>
       </div>`:''}
 
+      <!-- удаление аккаунта -->
       <div class="form-box mt-2" style="border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.025)">
         <h3 style="color:var(--red);margin-bottom:.5rem">⚠️ Удалить аккаунт</h3>
         <p style="font-size:.82rem;color:var(--muted);margin:0 0 .85rem">Это действие необратимо. Все данные будут удалены без возможности восстановления. Введите текущий пароль для подтверждения.</p>
@@ -672,6 +672,7 @@ async function loadAdmin(){
         <button class="btn btn-outline btn-sm" onclick="adminServices()">🛍 Услуги</button>
         <button class="btn btn-outline btn-sm" onclick="adminOrders()">📦 Заказы</button>
         <button class="btn btn-outline btn-sm" onclick="adminNotify()">📢 Уведомление всем</button>
+        <button class="btn btn-outline btn-sm" onclick="adminMaintenance()">🛠 Техобслуживание</button>
       </div>`,
       `<div class="stat-cards" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));margin-bottom:1.5rem">
         ${[
@@ -947,6 +948,94 @@ async function adminDelSvc(id,title,page=1){
   if(!confirm(`Удалить услугу "${title}"? Это действие необратимо.`)) return;
   try{await api(`/admin/services/${id}`,'DELETE');toastOk('Удалено');adminServices(page);}
   catch(e){toastErr(e.message);}
+}
+
+async function adminMaintenance(){
+  setContent(`<h2><span>🛠️</span>Техобслуживание</h2>
+    <button class="btn btn-ghost btn-sm" onclick="loadAdmin()">← Назад</button>`,
+    `<div class="form-box mb-2">
+      <h3 style="margin-bottom:.75rem">📊 Состояние базы данных</h3>
+      <div id="maint-stats" style="color:var(--muted);font-size:.84rem">Загрузка...</div>
+    </div>
+    <div class="form-box mb-2">
+      <h3 style="margin-bottom:.5rem">🧹 Очистка мусора</h3>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:.85rem">
+        Удаляет: отменённые заказы старше 90 дней, деактивированные аккаунты старше 30 дней,
+        уведомления старше 60 дней, прочитанные уведомления старше 7 дней,
+        сообщения в закрытых заказах старше 180 дней.
+      </p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="runCleanup()">🗑 Запустить очистку</button>
+        <button class="btn btn-outline" onclick="fixBalances()">💰 Пересчитать балансы</button>
+      </div>
+      <div id="maint-log" style="margin-top:.85rem"></div>
+    </div>
+    <div class="form-box">
+      <h3 style="margin-bottom:.75rem">⚠️ Подозрительная активность</h3>
+      <div id="maint-suspicious" style="color:var(--muted);font-size:.84rem">Загрузка...</div>
+    </div>`
+  );
+  loadMaintenanceStats();
+}
+
+async function loadMaintenanceStats(){
+  try{
+    const r=await api('/maintenance/stats');
+    if(!r) return;
+    const c=r.counts;
+    document.getElementById('maint-stats').innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;margin-bottom:.75rem">
+        ${[
+          ['👤 Пользователей',c.users],
+          ['🚫 Неактивных',c.inactive_users],
+          ['🛍 Услуг',c.services],
+          ['👁 Скрытых услуг',c.hidden_services],
+          ['📦 Заказов',c.orders],
+          ['❌ Отменённых',c.cancelled_orders],
+          ['✅ Завершённых',c.completed_orders],
+          ['💬 Сообщений',c.messages],
+          ['🔔 Уведомлений',c.notifications],
+          ['🔴 Непрочитанных',c.unread_notifications],
+          ['💳 Транзакций',c.transactions],
+          ['⭐ Отзывов',c.reviews],
+        ].map(([l,v])=>`<div style="background:var(--bg);border-radius:8px;padding:.5rem .75rem">
+          <div style="font-size:.7rem;color:var(--muted)">${l}</div>
+          <div style="font-weight:700;font-size:1rem">${v}</div>
+        </div>`).join('')}
+      </div>`;
+
+    const susp=r.suspicious_executors||[];
+    const anom=r.payment_anomalies||[];
+    document.getElementById('maint-suspicious').innerHTML=
+      (susp.length?`<div style="font-weight:600;margin-bottom:.4rem;font-size:.83rem">Подозрительные исполнители (много услуг, 0 заказов):</div>`+
+        susp.map(u=>`<div style="font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--border)">${esc(u.name)} · ${esc(u.email)} · ${u.services_count} услуг · рег. ${fmtDate(u.created_at)}</div>`).join(''):'')
+      +(anom.length?`<div style="font-weight:600;margin:.75rem 0 .4rem;font-size:.83rem;color:var(--red)">Аномалии платежей (отмена без возврата):</div>`+
+        anom.map(o=>`<div style="font-size:.78rem;padding:.3rem 0;border-bottom:1px solid var(--border)">Заказ ${o.id.slice(0,8)}... · ${fmtPrice(o.total_price)} · ${fmtDate(o.updated_at)}</div>`).join(''):'')
+      ||(susp.length===0&&anom.length===0?'<span style="color:var(--green)">✅ Всё в порядке, подозрительной активности нет</span>':'');
+  }catch(e){document.getElementById('maint-stats').textContent='Ошибка: '+e.message;}
+}
+
+async function runCleanup(){
+  if(!confirm('Запустить очистку базы данных? Это удалит мусорные данные.')) return;
+  const log=document.getElementById('maint-log');
+  log.innerHTML='<div style="color:var(--muted);font-size:.82rem">Выполняется...</div>';
+  try{
+    const r=await api('/maintenance/cleanup','POST');
+    if(!r){log.innerHTML='<div style="color:var(--red)">Ошибка запроса</div>';return;}
+    log.innerHTML=`<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:.75rem;font-size:.8rem">
+      <div style="font-weight:600;margin-bottom:.4rem;color:var(--green)">✅ Очистка завершена</div>
+      ${r.log.map(l=>`<div style="padding:.1rem 0">${esc(l)}</div>`).join('')}
+    </div>`;
+    loadMaintenanceStats();
+  }catch(e){log.innerHTML=`<div style="color:var(--red);font-size:.82rem">Ошибка: ${esc(e.message)}</div>`;}
+}
+
+async function fixBalances(){
+  if(!confirm('Пересчитать балансы по истории транзакций?')) return;
+  try{
+    const r=await api('/maintenance/fix-balances','POST');
+    toastOk(`Проверено: ${r.checked}, исправлено: ${r.fixed_balances}`);
+  }catch(e){toastErr(e.message);}
 }
 
 function showErr(msg,back=false){
