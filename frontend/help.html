@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Помощь — Skillmart</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+  <style>
+    body { background: var(--bg); color: var(--text); }
+
+    /* шапка */
+    .help-nav {
+      background: var(--surface); border-bottom: 1.5px solid var(--border);
+      padding: .75rem 1.5rem; display: flex; align-items: center; gap: 1rem;
+      position: sticky; top: 0; z-index: 200;
+    }
+    .help-nav-logo {
+      font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.05rem; font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; text-decoration: none;
+    }
+    .help-nav-links { display: flex; gap: .25rem; flex: 1; }
+    .help-nav-link {
+      padding: .34rem .8rem; border-radius: 100px;
+      font: 500 .8rem 'Inter', sans-serif; color: var(--muted);
+      text-decoration: none; transition: all .18s;
+    }
+    .help-nav-link:hover { color: var(--text); background: rgba(0,0,0,.05); }
+
+    .help-hero {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+      padding: 4rem 1.5rem 5rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .help-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .help-hero-content { position: relative; max-width: 600px; margin: 0 auto; }
+    .help-hero h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 2.4rem; font-weight: 800; color: #fff; margin-bottom: .65rem;
+    }
+    .help-hero p { font-size: 1.05rem; color: rgba(255,255,255,.82); margin-bottom: 1.5rem; }
+    .help-search-wrap {
+      position: relative; max-width: 480px; margin: 0 auto;
+    }
+    .help-search {
+      width: 100%; padding: .85rem 1rem .85rem 3rem;
+      border: none; border-radius: 14px;
+      font: 400 .95rem 'Inter', sans-serif;
+      box-shadow: 0 4px 24px rgba(0,0,0,.15);
+      outline: none; box-sizing: border-box;
+      background: #fff; color: #1a1a2e;
+    }
+    .help-search-ico {
+      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+      font-size: 1rem; pointer-events: none;
+    }
+
+    .help-quick {
+      display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap;
+      padding: 1.5rem 1.5rem .25rem; max-width: 860px; margin: 0 auto;
+    }
+    .quick-chip {
+      padding: .42rem .95rem; border-radius: 100px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      font: 500 .8rem 'Inter', sans-serif; color: var(--muted);
+      cursor: pointer; transition: all .18s; text-decoration: none; display: inline-block;
+    }
+    .quick-chip:hover { border-color: var(--indigo); color: var(--indigo); }
+
+    .help-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .faq-section { margin-bottom: 2.5rem; }
+    .faq-section-title {
+      display: flex; align-items: center; gap: .65rem;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 1.15rem; font-weight: 700;
+      margin-bottom: 1rem; padding-bottom: .6rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .faq-section-ico {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; flex-shrink: 0;
+    }
+
+    .faq-item {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--r-lg); margin-bottom: .5rem; overflow: hidden;
+      transition: border-color .18s;
+    }
+    .faq-item:hover { border-color: rgba(99,102,241,.25); }
+    .faq-item.open  { border-color: rgba(99,102,241,.35); }
+    .faq-q {
+      width: 100%; text-align: left; padding: 1rem 1.15rem;
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      background: none; border: none; cursor: pointer;
+      font: 600 .9rem 'Inter', sans-serif; color: var(--text);
+    }
+    .faq-q:hover { background: rgba(99,102,241,.03); }
+    .faq-arrow {
+      font-size: .75rem; color: var(--muted); flex-shrink: 0;
+      transition: transform .22s;
+    }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height .3s ease, padding .3s ease;
+      padding: 0 1.15rem;
+    }
+    .faq-item.open .faq-a { max-height: 500px; padding: 0 1.15rem 1.1rem; }
+    .faq-a-inner {
+      font-size: .86rem; line-height: 1.7; color: var(--muted);
+      border-top: 1px solid var(--border); padding-top: .85rem;
+    }
+    .faq-a-inner b { color: var(--text); }
+    .faq-a-inner ul { margin: .5rem 0 .5rem 1.25rem; }
+    .faq-a-inner li { margin-bottom: .25rem; }
+    .faq-a-inner .tip {
+      background: rgba(99,102,241,.07); border-left: 3px solid var(--indigo);
+      border-radius: 0 8px 8px 0; padding: .6rem .85rem;
+      margin-top: .65rem; font-size: .82rem; color: var(--text);
+    }
+    .faq-a-inner .tip::before { content: '💡 '; }
+
+    .step-list { display: flex; flex-direction: column; gap: .5rem; margin-top: .65rem; }
+    .step-row {
+      display: flex; align-items: flex-start; gap: .65rem;
+    }
+    .step-num-sm {
+      width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font: 700 .68rem 'Inter', sans-serif; color: #fff; margin-top: .12rem;
+    }
+    .step-txt { font-size: .85rem; line-height: 1.6; color: var(--muted); }
+
+    .contact-card {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-radius: var(--r-xl); padding: 2.5rem; text-align: center;
+      margin-top: 3rem; position: relative; overflow: hidden;
+    }
+    .contact-card::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+    .contact-card::after {
+      content: ''; position: absolute; bottom: -30px; left: -30px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(255,255,255,.05);
+    }
+    .contact-card-content { position: relative; }
+    .contact-card h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: .5rem;
+    }
+    .contact-card p { font-size: .9rem; color: rgba(255,255,255,.8); margin-bottom: 1.5rem; }
+    .contact-email {
+      display: inline-flex; align-items: center; gap: .65rem;
+      background: rgba(255,255,255,.15); backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255,255,255,.25);
+      border-radius: 100px; padding: .75rem 1.5rem;
+      font: 600 .95rem 'Inter', sans-serif; color: #fff;
+      text-decoration: none; transition: all .2s;
+    }
+    .contact-email:hover { background: rgba(255,255,255,.25); }
+    .contact-note { font-size: .75rem; color: rgba(255,255,255,.55); margin-top: 1rem; }
+
+    #no-results {
+      display: none; text-align: center; padding: 2.5rem;
+      color: var(--muted); font-size: .9rem;
+    }
+
+    @media (max-width: 600px) {
+      .help-hero h1 { font-size: 1.75rem; }
+      .help-hero    { padding: 2.5rem 1rem 3rem; }
+      .help-wrap    { padding: 1.5rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- шапка -->
+<nav class="help-nav">
+  <a href="/" class="help-nav-logo">Skillmart</a>
+  <div class="help-nav-links">
+    <a href="/services.html" class="help-nav-link">Каталог</a>
+    <a href="/help.html"     class="help-nav-link" style="color:var(--indigo);font-weight:600">Помощь</a>
+  </div>
+  <div id="nav-auth">
+    <a href="/auth.html?mode=register" class="btn btn-primary btn-sm">Начать →</a>
+  </div>
+</nav>
+
+<div class="help-hero">
+  <div class="help-hero-content">
+    <h1>Как вам помочь? 👋</h1>
+    <p>Ответы на самые частые вопросы о работе с платформой</p>
+    <div class="help-search-wrap">
+      <span class="help-search-ico">🔍</span>
+      <input class="help-search" type="text" placeholder="Поиск по вопросам..." oninput="searchFaq(this.value)" id="faq-search"/>
+    </div>
+  </div>
+</div>
+
+<!-- быстрые ссылки -->
+<div class="help-quick">
+  <a class="quick-chip" onclick="scrollTo('s-start')">🚀 С чего начать</a>
+  <a class="quick-chip" onclick="scrollTo('s-customer')">🛍 Для заказчиков</a>
+  <a class="quick-chip" onclick="scrollTo('s-executor')">🧑‍💻 Для исполнителей</a>
+  <a class="quick-chip" onclick="scrollTo('s-pay')">💰 Оплата и баланс</a>
+  <a class="quick-chip" onclick="scrollTo('s-safe')">🔒 Безопасность</a>
+  <a class="quick-chip" onclick="scrollTo('s-other')">❓ Прочее</a>
+</div>
+
+<div class="help-wrap">
+  <div id="no-results">
+    <div style="font-size:2rem;margin-bottom:.75rem">🤔</div>
+    <div style="font-weight:600;margin-bottom:.35rem">Ничего не найдено</div>
+    Попробуйте другой запрос или напишите нам на почту ниже
+  </div>
+
+  <!-- С ЧЕГО НАЧАТЬ -->
+  <div class="faq-section" id="s-start">
+    <div class="faq-section-title"><div class="faq-section-ico">🚀</div> С чего начать</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Что такое Skillmart и для чего он нужен?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <b>Skillmart</b> — это онлайн-платформа, где заказчики находят исполнителей цифровых услуг, а исполнители публикуют свои услуги и получают заказы. Всё общение, оплата и контроль качества происходят прямо на платформе.
+        <div class="tip">Примеры услуг: разработка сайта, создание логотипа, написание текстов, монтаж видео, настройка рекламы и многое другое.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как зарегистрироваться?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <div class="step-list">
+          <div class="step-row"><div class="step-num-sm">1</div><div class="step-txt">Нажмите кнопку <b>«Начать»</b> в правом верхнем углу страницы</div></div>
+          <div class="step-row"><div class="step-num-sm">2</div><div class="step-txt">Выберите роль: <b>Заказчик</b> (если хотите заказывать услуги) или <b>Исполнитель</b> (если хотите их оказывать)</div></div>
+          <div class="step-row"><div class="step-num-sm">3</div><div class="step-txt">Введите имя, email и придумайте надёжный пароль</div></div>
+          <div class="step-row"><div class="step-num-sm">4</div><div class="step-txt">Готово — вы попадёте в личный кабинет</div></div>
+        </div>
+        <div class="tip">Роль можно выбрать только один раз при регистрации. Если ошиблись — обратитесь в поддержку.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Какой пароль нужно придумать?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Пароль должен содержать:
+        <ul>
+          <li>Не менее <b>8 символов</b></li>
+          <li>Хотя бы одну <b>заглавную букву</b> (например A, B, C)</li>
+          <li>Хотя бы одну <b>строчную букву</b> (например a, b, c)</li>
+          <li>Хотя бы одну <b>цифру</b> (0–9)</li>
+          <li>Хотя бы один <b>спецсимвол</b>: ! @ # $ % и т.д.</li>
+        </ul>
+        <div class="tip">Пример хорошего пароля: <b>Skillmart2025!</b></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ДЛЯ ЗАКАЗЧИКОВ -->
+  <div class="faq-section" id="s-customer">
+    <div class="faq-section-title"><div class="faq-section-ico">🛍</div> Для заказчиков</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как найти нужного исполнителя?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <div class="step-list">
+          <div class="step-row"><div class="step-num-sm">1</div><div class="step-txt">Откройте раздел <b>«Каталог»</b></div></div>
+          <div class="step-row"><div class="step-num-sm">2</div><div class="step-txt">Выберите категорию (дизайн, разработка, тексты и т.д.)</div></div>
+          <div class="step-row"><div class="step-num-sm">3</div><div class="step-txt">Воспользуйтесь поиском или отфильтруйте по цене</div></div>
+          <div class="step-row"><div class="step-num-sm">4</div><div class="step-txt">Нажмите на карточку услуги, чтобы прочитать подробное описание и посмотреть профиль исполнителя</div></div>
+        </div>
+        <div class="tip">Обращайте внимание на рейтинг ⭐ и количество выполненных заказов — это показатели надёжности исполнителя.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как оформить заказ?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <div class="step-list">
+          <div class="step-row"><div class="step-num-sm">1</div><div class="step-txt">Пополните баланс в разделе <b>«Баланс»</b> личного кабинета</div></div>
+          <div class="step-row"><div class="step-num-sm">2</div><div class="step-txt">Найдите понравившуюся услугу и нажмите <b>«Заказать»</b></div></div>
+          <div class="step-row"><div class="step-num-sm">3</div><div class="step-txt">Опишите ваше задание в специальном поле</div></div>
+          <div class="step-row"><div class="step-num-sm">4</div><div class="step-txt">Подтвердите заказ — средства заморозятся на вашем счёте</div></div>
+        </div>
+        <div class="tip">Деньги не уйдут исполнителю пока вы сами не нажмёте «Завершить и оплатить».</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Что если результат работы меня не устроил?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <ul>
+          <li>Обсудите правки в чате заказа — вы можете общаться с исполнителем прямо на платформе</li>
+          <li>Если договориться не получается — напишите в поддержку, администратор может вмешаться в заказ</li>
+          <li>При отмене заказа деньги возвращаются на ваш баланс автоматически</li>
+        </ul>
+        <div class="tip">Не нажимайте «Завершить», пока не убедились в качестве результата — после этого деньги уйдут исполнителю.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как оставить отзыв?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        После того как заказ переходит в статус <b>«Завершён»</b>, в разделе чата появляется форма для отзыва. Поставьте оценку от 1 до 5 звёзд и напишите комментарий. Отзыв отображается на странице услуги и влияет на рейтинг исполнителя.
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ДЛЯ ИСПОЛНИТЕЛЕЙ -->
+  <div class="faq-section" id="s-executor">
+    <div class="faq-section-title"><div class="faq-section-ico">🧑‍💻</div> Для исполнителей</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как опубликовать свою услугу?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <div class="step-list">
+          <div class="step-row"><div class="step-num-sm">1</div><div class="step-txt">Зайдите в личный кабинет → раздел <b>«Мои услуги»</b></div></div>
+          <div class="step-row"><div class="step-num-sm">2</div><div class="step-txt">Нажмите <b>«+ Создать»</b></div></div>
+          <div class="step-row"><div class="step-num-sm">3</div><div class="step-txt">Заполните: название (мин. 10 символов), категорию, цену (до 500 000 ₽), срок выполнения (до 180 дней) и подробное описание</div></div>
+          <div class="step-row"><div class="step-num-sm">4</div><div class="step-txt">Добавьте теги — они помогают заказчикам найти вас через поиск</div></div>
+        </div>
+        <div class="tip">Если цена обсуждаемая, поставьте галочку «Цена по договорённости» — тогда заказчики смогут написать вам и обсудить стоимость.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как заполнить профиль чтобы заказчики доверяли больше?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Хороший профиль исполнителя содержит:
+        <ul>
+          <li><b>Фото</b> — реальная аватарка повышает доверие</li>
+          <li><b>Специализацию</b> — коротко опишите вашу экспертизу</li>
+          <li><b>Навыки</b> — укажите до 12 навыков с уровнем владения</li>
+          <li><b>Портфолио</b> — добавьте до 5 примеров работ со ссылками</li>
+          <li><b>Социальные сети</b> — GitHub, Behance, LinkedIn и другие</li>
+          <li><b>Статус доступности</b> — установите «Доступен» чтобы ваши услуги показывались в каталоге</li>
+        </ul>
+        <div class="tip">Исполнители со статусом «Занят» или «В отпуске» не отображаются в каталоге!</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как работает жизненный цикл заказа?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Заказ проходит несколько этапов:
+        <ul>
+          <li><b>Создан</b> — заказчик оформил заказ, деньги заморожены</li>
+          <li><b>В работе</b> — вы приняли заказ и начали выполнять</li>
+          <li><b>На проверке</b> — вы сдали работу, заказчик проверяет</li>
+          <li><b>Завершён</b> — заказчик принял работу, деньги поступили к вам</li>
+          <li><b>Отменён</b> — заказ отменён, деньги вернулись заказчику</li>
+        </ul>
+        <div class="tip">Если хотите изменить итоговую цену — это можно сделать в чате заказа. Заказчику придёт уведомление.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Почему моя услуга не видна в каталоге?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Проверьте несколько вещей:
+        <ul>
+          <li>В профиле установлен статус <b>«Доступен»</b> (не «Занят» и не «В отпуске»)</li>
+          <li>Услуга активна — кнопка «🚫» рядом с услугой не нажата</li>
+          <li>Ваш аккаунт не заблокирован администратором</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ОПЛАТА И БАЛАНС -->
+  <div class="faq-section" id="s-pay">
+    <div class="faq-section-title"><div class="faq-section-ico">💰</div> Оплата и баланс</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как пополнить баланс?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Перейдите в раздел <b>«Баланс»</b> личного кабинета. Введите сумму (минимум 100 ₽) и нажмите «Пополнить». Средства зачисляются мгновенно.
+        <div class="tip">Баланс на Skillmart — это виртуальный счёт внутри платформы. Вы можете использовать его для оплаты услуг.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Когда деньги поступают на счёт исполнителя?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Деньги зачисляются <b>автоматически и мгновенно</b> в момент, когда заказчик нажимает «✅ Завершить и оплатить». До этого момента средства заморожены на счёте заказчика — исполнитель их не получает.
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Что происходит с деньгами при отмене заказа?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        При отмене заказа (независимо от того, кто отменил) замороженная сумма <b>возвращается заказчику</b> на баланс автоматически. Операция отображается в истории транзакций как «Возврат».
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Можно ли вывести деньги с баланса?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        На данный момент функция вывода средств находится в разработке. Текущий баланс можно использовать для оплаты услуг на платформе. Следите за обновлениями!
+      </div></div>
+    </div>
+  </div>
+
+  <!-- БЕЗОПАСНОСТЬ -->
+  <div class="faq-section" id="s-safe">
+    <div class="faq-section-title"><div class="faq-section-ico">🔒</div> Безопасность аккаунта</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как сменить пароль?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Зайдите в <b>Профиль → Смена пароля</b>. Введите текущий пароль, затем новый. Новый пароль должен соответствовать тем же требованиям (8+ символов, заглавная, строчная, цифра, спецсимвол).
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как удалить аккаунт?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        В личном кабинете → <b>Профиль</b> → прокрутите вниз до раздела <b>«⚠️ Удалить аккаунт»</b>. Для подтверждения нужно ввести текущий пароль. Это действие необратимо — все данные будут удалены.
+        <div class="tip">Перед удалением убедитесь, что у вас нет активных заказов и средств на балансе.</div>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Что делать если меня заблокировали?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Если вы считаете, что блокировка произошла по ошибке — напишите нам на электронную почту поддержки (контакты ниже) с темой письма «Разблокировка аккаунта». Опишите ситуацию и укажите email вашего аккаунта.
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ПРОЧЕЕ -->
+  <div class="faq-section" id="s-other">
+    <div class="faq-section-title"><div class="faq-section-ico">❓</div> Прочее</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как часто можно создавать услуги?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Не более <b>5 услуг в сутки</b> с одного аккаунта. Это ограничение введено для защиты платформы от спама. Если вам нужно больше — обратитесь в поддержку.
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Почему моё сообщение не отправляется?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Возможные причины:
+        <ul>
+          <li>Вы превысили лимит сообщений (10 сообщений в минуту) — подождите немного</li>
+          <li>Заказ переведён в статус «Завершён» или «Отменён» — чат закрывается автоматически</li>
+          <li>Сообщение содержит запрещённые ссылки или спам-текст</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Когда удаляются данные с платформы?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Автоматическая очистка происходит по расписанию:
+        <ul>
+          <li>Отменённые заказы — через <b>90 дней</b> после отмены</li>
+          <li>Сообщения в закрытых заказах — через <b>180 дней</b></li>
+          <li>Прочитанные уведомления — через <b>7 дней</b></li>
+          <li>Деактивированные аккаунты — через <b>30 дней</b> после деактивации</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggle(this)">
+        Как пожаловаться на исполнителя или заказчика?
+        <span class="faq-arrow">▼</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        Напишите нам на почту поддержки с темой «Жалоба». Укажите:
+        <ul>
+          <li>Email или имя нарушителя</li>
+          <li>Номер заказа (если применимо)</li>
+          <li>Описание проблемы</li>
+        </ul>
+        Мы рассмотрим обращение в течение 48 часов.
+      </div></div>
+    </div>
+  </div>
+
+  <!-- КОНТАКТЫ -->
+  <div class="contact-card">
+    <div class="contact-card-content">
+      <h2>Не нашли ответ? ✉️</h2>
+      <p>Напишите нам — ответим в течение 48 часов в рабочие дни</p>
+      <a href="mailto:support@skillmart.ru" class="contact-email">
+        📧 support@skillmart.ru
+      </a>
+      <div class="contact-note">
+        В теме письма укажите суть вопроса.<br>
+        Режим работы поддержки: пн–пт, 9:00–18:00 МСК
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+// обновляем кнопку входа/кабинета
+const u = Storage.getUser();
+if (u) {
+  document.getElementById('nav-auth').innerHTML =
+    `<a href="/dashboard.html" class="btn btn-primary btn-sm">Кабинет</a>`;
+}
+
+// аккордеон
+function toggle(btn) {
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  // закрываем все
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+// прокрутка к секции
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// поиск по вопросам
+function searchFaq(q) {
+  const query = q.toLowerCase().trim();
+  const items = document.querySelectorAll('.faq-item');
+  const sections = document.querySelectorAll('.faq-section');
+  let anyVisible = false;
+
+  sections.forEach(sec => {
+    let secVisible = false;
+    sec.querySelectorAll('.faq-item').forEach(item => {
+      const text = item.textContent.toLowerCase();
+      const match = !query || text.includes(query);
+      item.style.display = match ? '' : 'none';
+      if (match) { secVisible = true; anyVisible = true; }
+    });
+    sec.style.display = secVisible ? '' : 'none';
+  });
+
+  document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+
+  // открываем первый найденный при поиске
+  if (query) {
+    const first = document.querySelector('.faq-item:not([style*="none"])');
+    if (first) first.classList.add('open');
+  }
+}
+
+// если пришли по хэшу — открываем нужный блок
+if (location.hash) {
+  const el = document.querySelector(location.hash);
+  if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+}
+</script>
+</body>
+</html>
