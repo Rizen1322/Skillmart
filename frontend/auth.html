@@ -38,12 +38,16 @@
     .auth-foot a { color:var(--indigo); font-weight:600; }
     .spin-btn .sp { display:none; width:15px; height:15px; border-width:2px; position:absolute; }
     .spin-btn.busy .bt { opacity:0; } .spin-btn.busy .sp { display:block; }
+    .pc-row { font-size:.77rem; padding:.18rem 0; color:#ef4444; transition:color .18s; }
+    .pc-row.ok { color:#22c55e; }
+    .pc-row.ok::first-letter { content: '✓'; }
   </style>
 </head>
 <body>
 <div class="auth-top">
   <a href="/" class="brand-link">Skillmart</a>
-  <a href="/services.html" class="btn btn-ghost btn-sm">Каталог</a>
+  <a href="/help.html" class="btn btn-ghost btn-sm">Помощь</a>
+    <a href="/services.html" class="btn btn-ghost btn-sm">Каталог</a>
 </div>
 <div class="auth-wrap">
   <div class="auth-card">
@@ -85,7 +89,24 @@
         </div>
         <div class="form-group"><label>Имя</label><input type="text" id="r-name" placeholder="Иван Иванов" required autocomplete="name"/></div>
         <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com" required autocomplete="email"/></div>
-        <div class="form-group"><label>Пароль <span style="font-weight:400;color:var(--muted)">мин. 8 симв., заглавная, цифра, спецсимвол</span></label><input type="password" id="r-pass" placeholder="Пример: Mypass1!" minlength="8" required autocomplete="new-password"/></div>
+        <div class="form-group" style="position:relative">
+          <label>Пароль</label>
+          <input type="password" id="r-pass" placeholder="Введите пароль" minlength="8" required autocomplete="new-password"
+            onfocus="showPwdTip()" oninput="checkPwd(this.value)" onblur="hidePwdTip()"/>
+          <div id="pwd-tip" style="
+            display:none; position:absolute; left:0; top:100%; margin-top:.35rem;
+            background:var(--surface); border:1.5px solid rgba(99,102,241,.2);
+            border-radius:12px; padding:.85rem 1rem; z-index:200; width:100%;
+            box-shadow:0 8px 24px rgba(0,0,0,.12); box-sizing:border-box;
+          ">
+            <div style="font:600 .75rem 'Inter',sans-serif; color:var(--muted); margin-bottom:.5rem">Требования к паролю:</div>
+            <div id="pc-len"  class="pc-row">✗ Минимум 8 символов</div>
+            <div id="pc-up"   class="pc-row">✗ Заглавная буква (A–Z)</div>
+            <div id="pc-low"  class="pc-row">✗ Строчная буква (a–z)</div>
+            <div id="pc-num"  class="pc-row">✗ Цифра (0–9)</div>
+            <div id="pc-spec" class="pc-row">✗ Спецсимвол (!@#$%...)</div>
+          </div>
+        </div>
         <div id="r-err" class="error-msg"></div>
         <button type="submit" class="btn btn-primary btn-block btn-lg mt-2 spin-btn" id="r-btn" style="position:relative">
           <span class="bt">Создать аккаунт</span><div class="spinner sp" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
@@ -99,6 +120,21 @@
 <script src="/js/app.js"></script>
 <script>
 let role = 'customer';
+function showPwdTip(){ document.getElementById('pwd-tip').style.display='block'; checkPwd(document.getElementById('r-pass').value); }
+function hidePwdTip(){ setTimeout(()=>{ document.getElementById('pwd-tip').style.display='none'; }, 150); }
+function checkPwd(v){
+  const set = (id, ok, okTxt, failTxt) => {
+    const el = document.getElementById(id);
+    el.classList.toggle('ok', ok);
+    el.textContent = (ok ? '✓ ' : '✗ ') + (ok ? okTxt : failTxt);
+  };
+  set('pc-len',  v.length >= 8,               'Минимум 8 символов',     'Минимум 8 символов');
+  set('pc-up',   /[A-Z]/.test(v),             'Заглавная буква (A–Z)',  'Заглавная буква (A–Z)');
+  set('pc-low',  /[a-z]/.test(v),             'Строчная буква (a–z)',   'Строчная буква (a–z)');
+  set('pc-num',  /[0-9]/.test(v),             'Цифра (0–9)',            'Цифра (0–9)');
+  set('pc-spec', /[!@#$%^&*()_+\-=\[\]{};':"\|,.<>\/?]/.test(v), 'Спецсимвол (!@#$%...)', 'Спецсимвол (!@#$%...)');
+}
+
 function sw(t) {
   ['login','register'].forEach(x => {
     document.getElementById('f-'+x.replace('register','reg')).classList.toggle('active', t===x);
