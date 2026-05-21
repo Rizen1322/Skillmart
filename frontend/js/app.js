@@ -1,5 +1,5 @@
 'use strict';
-const API = 'https://2-production-ab08.up.railway.app/api';
+const API = '/api';
 
 /* ── Storage ──────────────────────────────────────────────── */
 const Storage = {
