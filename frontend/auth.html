@@ -7,16 +7,54 @@
   <link rel="stylesheet" href="/css/app.css"/>
   <style>
     body { display:flex; flex-direction:column; min-height:100vh; background:var(--bg); }
-    .auth-top {
-      padding: .85rem 1.5rem; display:flex; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--border); background:var(--surface);
+    .topbar {
+      position: fixed;
+      top: 1.1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(24px) saturate(180%);
+      border: 1.5px solid rgba(99,102,241,.15);
+      border-radius: 100px;
+      padding: .38rem .4rem .38rem 1.15rem;
+      box-shadow: 0 4px 28px rgba(99,102,241,.1), 0 1px 4px rgba(0,0,0,.05);
+      z-index: 200;
+      white-space: nowrap;
     }
-    .brand-link {
-      font-family:'Bricolage Grotesque',sans-serif; font-size:1.15rem; font-weight:800;
-      text-decoration:none; display:inline-block;
-      background:linear-gradient(135deg,#6366f1,#8b5cf6);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text; color:transparent;
+    
+    .topbar-logo {
+      font-family:'Bricolage Grotesque',sans-serif;
+      font-size:1.05rem;
+      font-weight:800;
+      background:var(--grad);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    
+    .topbar-div {
+      width:1px;
+      height:16px;
+      background:rgba(0,0,0,.1);
+      flex-shrink:0;
+      margin:0 .2rem;
+    }
+    
+    .topbar-cat {
+      padding:.34rem .8rem;
+      border-radius:100px;
+      font:500 .8rem 'Inter',sans-serif;
+      color:var(--muted);
+      transition:all .18s;
+      text-decoration:none;
+      display:inline-block;
+    }
+    
+    .topbar-cat:hover {
+      color:var(--text);
+      background:rgba(0,0,0,.05);
     }
     .auth-wrap  { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
     .auth-card  { background:var(--surface); border-radius:var(--r-xl); border:1.5px solid rgba(0,0,0,.09); box-shadow:0 8px 48px rgba(0,0,0,.09); width:100%; max-width:420px; padding:2rem 2rem 1.75rem; }
@@ -44,10 +82,11 @@
   </style>
 </head>
 <body>
-<div class="auth-top">
-  <a href="/" class="brand-link">Skillmart</a>
-  <a href="/help.html" class="btn btn-ghost btn-sm">Помощь</a>
-    <a href="/services.html" class="btn btn-ghost btn-sm">Каталог</a>
+<div class="topbar">
+  <a href="/" class="topbar-logo">Skillmart</a>
+  <div class="topbar-div"></div>
+  <a href="/services.html" class="topbar-cat">Каталог</a>
+  <a href="/help.html" class="topbar-cat">Помощь</a>
 </div>
 <div class="auth-wrap">
   <div class="auth-card">
