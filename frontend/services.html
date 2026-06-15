@@ -106,7 +106,9 @@ function svcCard(s) {
     </div>
     <div class="svc-card-foot">
       <div class="svc-deadline">⏱ ${s.deadline} дн.</div>
-      <div class="svc-price">от ${s.is_negotiable ? '💬 Договорная' : fmtPrice(s.price)}</div>
+      <div class="svc-price">
+  ${s.is_negotiable ? 'По договорённости' : 'от ' + fmtPrice(s.price)}
+</div>
     </div>
   </a>`;
 }
